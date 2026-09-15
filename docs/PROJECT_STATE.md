@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.2.0  
+**Version:** 1.3.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-09-15  
 **Repository:** `AndreVazao/TruckFood`  
@@ -51,6 +51,8 @@ The discovery baseline now includes:
 - `docs/LICENSING.md`
 - `docs/SOURCE_REGISTRY.md`
 - `docs/DISCOVERY_FINDINGS.md`
+- `docs/PORTUGAL_DATA_SOURCES.md`
+- `docs/PROVIDER_COSTS.md`
 - `docs/adr/ADR-0001-product-direction.md`
 - `docs/adr/ADR-0002-provider-abstraction.md`
 
@@ -112,7 +114,22 @@ Current web research confirms:
 - TomTom also exposes truck vehicle types and vehicle dimensions/restrictions in its routing SDK.
 - OpenStreetMap is licensed under ODbL and requires attribution; share-alike implications must be handled deliberately when distributing OSM-derived databases.
 
-These findings support the provider-abstraction architecture but do not yet select a production provider.
+### Portugal-specific findings
+
+- IMT is a primary regulatory source for dangerous-goods restrictions and ADR material.
+- Infraestruturas de Portugal is a primary candidate for national-road operational information and time-dependent traffic regimes.
+- A current 2026 example shows why temporal rules matter: restrictions for heavy goods vehicles on Porto's VCI enter into force on 15 September 2026.
+- Portuguese road-network legislation explicitly recognises service areas, rest areas and parking areas.
+- Road concessionaires publish useful service-area details, including heavy-vehicle parking and driver facilities at some locations.
+- There is no single identified Portuguese nationwide feed that is sufficient for TruckFood's complete parking/food/service database.
+- Portugal is therefore a viable first market, but requires a multi-source strategy with explicit provenance and validation.
+
+### Provider-cost findings
+
+- Google Maps Platform uses SKU-based pay-as-you-go pricing; public list prices include free monthly usage for several Routes, Geocoding and Places SKUs, after which usage is charged per 1,000 events.
+- Mapbox offers free tiers and usage-based pricing for Directions, Search and Geocoding, with different licensing/data-use implications for temporary versus permanent geocoding.
+- HERE and TomTom remain technically strong truck-routing candidates, but exact production cost and contractual terms must be evaluated against the intended commercial plan and volume.
+- Cost must be evaluated as total operating cost, not only API request price.
 
 ## 7. Provider Strategy
 
@@ -158,6 +175,7 @@ The project must compare Portugal and European coverage, cost, quotas, licensing
 8. Designing a vehicle model that is either too weak for real-world use or unnecessarily complex for the MVP.
 9. Assuming that technically accessible external data is commercially reusable.
 10. Treating provider coverage as universal when it is not.
+11. Allowing provider request volume to become an uncontrolled operating cost.
 
 ## 10. Architecture Governance
 
@@ -175,23 +193,23 @@ The project will use:
 
 **Status:** In progress.
 
-The first product and provider/data discovery baseline is documented. The next work is country-specific source research and architecture preparation, not application coding.
+The first product and provider/data discovery baseline is documented. Portugal-specific sources and provider cost reality have now been researched at a first-pass level. The next work is architecture preparation and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Research Portugal road/restriction sources.
-2. Research Portugal truck parking sources.
-3. Research Portugal restaurant/POI sources.
-4. Research European expansion sources.
-5. Compare provider pricing and quotas.
-6. Compare data storage/caching/commercial rights.
-7. Finalise the minimum viable vehicle model through an ADR.
-8. Finalise the Location/POI domain model.
-9. Define provenance/trust data structures.
-10. Define system architecture and provider boundaries.
-11. Define initial database model.
-12. Define API boundaries.
-13. Define security and privacy requirements.
+1. Validate the most useful Portuguese official and concessionaire data sources in more depth.
+2. Research European expansion sources and cross-border restriction data.
+3. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+4. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+5. Define the minimum viable vehicle model through an ADR.
+6. Finalise the Location/POI domain model.
+7. Define provenance/trust data structures.
+8. Define restriction/effective-time structures.
+9. Define system architecture and provider boundaries.
+10. Define initial database model.
+11. Define API boundaries.
+12. Define security and privacy requirements.
+13. Define an initial operating-cost budget and request limits.
 14. Only then begin implementation.
 
 ## 13. North Star Direction
