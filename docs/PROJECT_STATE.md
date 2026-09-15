@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.3.0  
+**Version:** 1.4.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-09-15  
 **Repository:** `AndreVazao/TruckFood`  
@@ -55,6 +55,7 @@ The discovery baseline now includes:
 - `docs/PROVIDER_COSTS.md`
 - `docs/adr/ADR-0001-product-direction.md`
 - `docs/adr/ADR-0002-provider-abstraction.md`
+- `docs/VEHICLE_PROFILE_ADR-0003.md`
 
 ## 4. Repository Foundation
 
@@ -84,7 +85,7 @@ A location can provide multiple services such as parking, food, fuel, showers, a
 
 Vehicle characteristics are a first-class concern because physical and access suitability depends on the vehicle.
 
-The final database schema remains open until an ADR validates the minimum viable vehicle model.
+ADR-0003 now defines the minimum viable vehicle context: dimensions, gross weight, axle context, configuration, conditional ADR attributes and selected operational attributes.
 
 ### 5.4 Trust
 
@@ -131,6 +132,12 @@ Current web research confirms:
 - HERE and TomTom remain technically strong truck-routing candidates, but exact production cost and contractual terms must be evaluated against the intended commercial plan and volume.
 - Cost must be evaluated as total operating cost, not only API request price.
 
+### Vehicle-model findings
+
+Portuguese legislation defines and regulates dimensions, gross weight and axle-weight concepts separately. The research therefore confirms that TruckFood cannot safely reduce the vehicle profile to a single generic "truck size" value. citeturn0search4turn0search0
+
+ADR is treated as a conditional vehicle/journey capability rather than a mandatory field for every driver. IMT publishes ADR 2025 material covering classification, transport conditions, crew/equipment/operation/documentation and vehicle construction/approval. citeturn0search8
+
 ## 7. Provider Strategy
 
 Conceptual provider boundaries:
@@ -176,6 +183,7 @@ The project must compare Portugal and European coverage, cost, quotas, licensing
 9. Assuming that technically accessible external data is commercially reusable.
 10. Treating provider coverage as universal when it is not.
 11. Allowing provider request volume to become an uncontrolled operating cost.
+12. Treating gross weight as a substitute for axle-specific restrictions.
 
 ## 10. Architecture Governance
 
@@ -193,7 +201,7 @@ The project will use:
 
 **Status:** In progress.
 
-The first product and provider/data discovery baseline is documented. Portugal-specific sources and provider cost reality have now been researched at a first-pass level. The next work is architecture preparation and deeper commercial/licensing validation, not application coding.
+The first product, provider/data and vehicle-model discovery baseline is documented. The minimum viable vehicle context has now been accepted as ADR-0003. The next work is domain/architecture preparation and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
@@ -201,15 +209,15 @@ The first product and provider/data discovery baseline is documented. Portugal-s
 2. Research European expansion sources and cross-border restriction data.
 3. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
 4. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-5. Define the minimum viable vehicle model through an ADR.
-6. Finalise the Location/POI domain model.
-7. Define provenance/trust data structures.
-8. Define restriction/effective-time structures.
-9. Define system architecture and provider boundaries.
-10. Define initial database model.
-11. Define API boundaries.
-12. Define security and privacy requirements.
-13. Define an initial operating-cost budget and request limits.
+5. Finalise the Location/POI domain model.
+6. Define provenance/trust data structures.
+7. Define restriction/effective-time structures.
+8. Define system architecture and provider boundaries.
+9. Define initial database model.
+10. Define API boundaries.
+11. Define security and privacy requirements.
+12. Define an initial operating-cost budget and request limits.
+13. Validate the vehicle model against real driver journeys, parking/access cases and ADR scenarios.
 14. Only then begin implementation.
 
 ## 13. North Star Direction
