@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.4.0  
+**Version:** 1.5.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-09-15  
 **Repository:** `AndreVazao/TruckFood`  
@@ -53,9 +53,10 @@ The discovery baseline now includes:
 - `docs/DISCOVERY_FINDINGS.md`
 - `docs/PORTUGAL_DATA_SOURCES.md`
 - `docs/PROVIDER_COSTS.md`
+- `docs/VEHICLE_PROFILE_ADR-0003.md`
 - `docs/adr/ADR-0001-product-direction.md`
 - `docs/adr/ADR-0002-provider-abstraction.md`
-- `docs/VEHICLE_PROFILE_ADR-0003.md`
+- `docs/adr/ADR-0004-location-poi-domain-model.md`
 
 ## 4. Repository Foundation
 
@@ -79,29 +80,33 @@ The professional truck driver is the highest-priority persona.
 
 The central entity is **Location / POI**, not Restaurant.
 
-A location can provide multiple services such as parking, food, fuel, showers, accommodation or other driver services.
+ADR-0004 now formalises Location as the stable TruckFood geographic entity. A Location can expose multiple capabilities/services such as parking, food, fuel, showers, toilets, accommodation, workshop or other driver services.
 
 ### 5.3 Vehicle context
 
 Vehicle characteristics are a first-class concern because physical and access suitability depends on the vehicle.
 
-ADR-0003 now defines the minimum viable vehicle context: dimensions, gross weight, axle context, configuration, conditional ADR attributes and selected operational attributes.
+ADR-0003 defines the minimum viable vehicle context: dimensions, gross weight, axle context, configuration, conditional ADR attributes and selected operational attributes.
 
-### 5.4 Trust
+### 5.4 Location suitability
+
+Location existence, location capability and vehicle suitability are separate concepts. A restaurant may exist and offer parking while still being unsuitable for a particular truck because of access, dimensions, restrictions or temporal conditions.
+
+### 5.5 Trust
 
 Critical information must preserve provenance, freshness and confidence. Official, provider, community and inferred information must remain distinguishable.
 
-### 5.5 Safety boundary
+### 5.6 Safety boundary
 
 The absence of a known restriction must never be interpreted as proof that no restriction exists.
 
 TruckFood must not claim universally safe or legally compliant truck routing until data quality, coverage, licensing and validation justify that capability.
 
-### 5.6 MVP boundary
+### 5.7 MVP boundary
 
 The MVP focuses on useful discovery of locations, truck-relevant parking, food, community information and basic driver/vehicle context, while preparing the architecture for future restriction intelligence.
 
-### 5.7 Provider abstraction
+### 5.8 Provider abstraction
 
 External maps, routing, geocoding, restriction and POI services will be isolated behind provider adapters. Provider-specific objects must not become the TruckFood domain model.
 
@@ -134,9 +139,20 @@ Current web research confirms:
 
 ### Vehicle-model findings
 
-Portuguese legislation defines and regulates dimensions, gross weight and axle-weight concepts separately. The research therefore confirms that TruckFood cannot safely reduce the vehicle profile to a single generic "truck size" value. citeturn0search4turn0search0
+Portuguese legislation defines and regulates dimensions, gross weight and axle-weight concepts separately. The research therefore confirms that TruckFood cannot safely reduce the vehicle profile to a single generic "truck size" value.
 
-ADR is treated as a conditional vehicle/journey capability rather than a mandatory field for every driver. IMT publishes ADR 2025 material covering classification, transport conditions, crew/equipment/operation/documentation and vehicle construction/approval. citeturn0search8
+ADR is treated as a conditional vehicle/journey capability rather than a mandatory field for every driver.
+
+### Location-model findings
+
+- A real-world truck-relevant place commonly combines several services; therefore Location must not be a single-category POI enum.
+- Location capabilities should be represented independently from access/suitability.
+- Access may differ by vehicle, entrance, service and time.
+- Parent locations may contain child service records when service-level precision is required.
+- Provider identifiers remain references to a TruckFood-owned Location identity.
+- Community observations are evidence with timestamps and confidence, not automatic authoritative truth.
+- Suitability should support `suitable`, `suitable_with_conditions`, `unsuitable_known`, `unknown`, `temporarily_unavailable` and `insufficient_data` rather than forcing a binary answer.
+- OpenStreetMap tagging guidance supports representing restaurants, fuel stations and related facilities separately and includes fields such as opening hours, HGV access and maximum height, reinforcing the separation between Location, capability and access.
 
 ## 7. Provider Strategy
 
@@ -184,6 +200,7 @@ The project must compare Portugal and European coverage, cost, quotas, licensing
 10. Treating provider coverage as universal when it is not.
 11. Allowing provider request volume to become an uncontrolled operating cost.
 12. Treating gross weight as a substitute for axle-specific restrictions.
+13. Entity duplication/conflicts when multiple providers describe the same physical location.
 
 ## 10. Architecture Governance
 
@@ -201,24 +218,23 @@ The project will use:
 
 **Status:** In progress.
 
-The first product, provider/data and vehicle-model discovery baseline is documented. The minimum viable vehicle context has now been accepted as ADR-0003. The next work is domain/architecture preparation and deeper commercial/licensing validation, not application coding.
+The product, provider/data, vehicle-model and Location/POI domain discovery baseline is now documented. The minimum viable vehicle context and Location domain direction have been accepted through ADRs. The next work is persistence/domain architecture and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Validate the most useful Portuguese official and concessionaire data sources in more depth.
-2. Research European expansion sources and cross-border restriction data.
-3. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-4. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-5. Finalise the Location/POI domain model.
-6. Define provenance/trust data structures.
-7. Define restriction/effective-time structures.
-8. Define system architecture and provider boundaries.
-9. Define initial database model.
-10. Define API boundaries.
-11. Define security and privacy requirements.
-12. Define an initial operating-cost budget and request limits.
-13. Validate the vehicle model against real driver journeys, parking/access cases and ADR scenarios.
-14. Only then begin implementation.
+1. Define provenance/trust data structures.
+2. Define restriction/effective-time structures.
+3. Define initial persistence/domain model without provider coupling.
+4. Define system architecture and provider boundaries.
+5. Define API boundaries.
+6. Validate Portuguese official and concessionaire data sources in more depth.
+7. Research European expansion and cross-border restriction sources.
+8. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+9. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+10. Define security and privacy requirements.
+11. Define an initial operating-cost budget and request limits.
+12. Validate the vehicle and Location models against real driver journeys and parking/access cases.
+13. Only then begin implementation.
 
 ## 13. North Star Direction
 
