@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-09-15  
 **Repository:** `AndreVazao/TruckFood`  
@@ -35,7 +35,7 @@ TruckFood is not initially intended to replace mature navigation engines.
 
 ## 3. Discovery Documentation Completed
 
-The first major discovery set is now documented:
+The discovery baseline now includes:
 
 - `docs/VISION.md`
 - `docs/REQUIREMENTS.md`
@@ -47,7 +47,12 @@ The first major discovery set is now documented:
 - `docs/DATA_STRATEGY.md`
 - `docs/MVP.md`
 - `docs/ROADMAP.md`
+- `docs/PROVIDER_RESEARCH.md`
+- `docs/LICENSING.md`
+- `docs/SOURCE_REGISTRY.md`
+- `docs/DISCOVERY_FINDINGS.md`
 - `docs/adr/ADR-0001-product-direction.md`
+- `docs/adr/ADR-0002-provider-abstraction.md`
 
 ## 4. Repository Foundation
 
@@ -93,19 +98,36 @@ TruckFood must not claim universally safe or legally compliant truck routing unt
 
 The MVP focuses on useful discovery of locations, truck-relevant parking, food, community information and basic driver/vehicle context, while preparing the architecture for future restriction intelligence.
 
-## 6. Initial Technology Direction
+### 5.7 Provider abstraction
 
-The original technical direction remains provisional:
+External maps, routing, geocoding, restriction and POI services will be isolated behind provider adapters. Provider-specific objects must not become the TruckFood domain model.
 
-- Mobile: React Native + Expo
-- Web: Next.js + Vercel
-- Backend/data: Supabase / PostgreSQL / Auth / Storage
-- Maps: provider abstraction supporting OpenStreetMap/Mapbox/Google Maps or other suitable providers
-- Source control: GitHub
+## 6. Discovery Research Findings
 
-These choices must be validated against cost, licensing, performance, data coverage and operational requirements before implementation is frozen.
+Current web research confirms:
 
-## 7. Product Domains Under Consideration
+- OpenStreetMap contains useful truck-related restriction structures including height, physical height, width, physical width, length, weight, axle load, HGV access, hazardous-material access and conditional restrictions.
+- HERE Routing supports truck routing with vehicle parameters and considers legal, physical, hazardous-material and time-dependent restrictions.
+- HERE also documents regional differences in truck restriction coverage, confirming that coverage itself must be part of TruckFood's trust model.
+- TomTom also exposes truck vehicle types and vehicle dimensions/restrictions in its routing SDK.
+- OpenStreetMap is licensed under ODbL and requires attribution; share-alike implications must be handled deliberately when distributing OSM-derived databases.
+
+These findings support the provider-abstraction architecture but do not yet select a production provider.
+
+## 7. Provider Strategy
+
+Conceptual provider boundaries:
+
+1. Map Provider
+2. Geocoding Provider
+3. Routing Provider
+4. Restriction/Data Provider
+5. POI/Business Provider
+6. TruckFood-owned/community data
+
+The project must compare Portugal and European coverage, cost, quotas, licensing, caching/storage rights, data quality and failure behaviour before freezing a provider.
+
+## 8. Product Domains Under Consideration
 
 - Identity
 - Vehicle
@@ -124,7 +146,7 @@ These choices must be validated against cost, licensing, performance, data cover
 - Administration
 - Trust / Data Provenance
 
-## 8. Critical Product Risks
+## 9. Critical Product Risks
 
 1. Incorrect or stale road restriction information.
 2. Presenting inferred route suitability as guaranteed safety.
@@ -134,8 +156,10 @@ These choices must be validated against cost, licensing, performance, data cover
 6. Uncontrolled scope expansion.
 7. Building UI before the data and domain model are stable.
 8. Designing a vehicle model that is either too weak for real-world use or unnecessarily complex for the MVP.
+9. Assuming that technically accessible external data is commercially reusable.
+10. Treating provider coverage as universal when it is not.
 
-## 9. Architecture Governance
+## 10. Architecture Governance
 
 The project will use:
 
@@ -145,28 +169,32 @@ The project will use:
 - Versioned diagrams (`docs/diagrams/`)
 - This project-state document as the operational memory of the repository.
 
-## 10. Current Phase
+## 11. Current Phase
 
 ### Phase -1 — Discovery & Product Foundation
 
 **Status:** In progress.
 
-The first discovery baseline is documented. The next work is validation and architecture preparation, not application coding.
+The first product and provider/data discovery baseline is documented. The next work is country-specific source research and architecture preparation, not application coding.
 
-## 11. Immediate Next Steps
+## 12. Immediate Next Steps
 
-1. Research realistic data/map/routing/restriction/parking sources and their licensing.
-2. Validate the MVP with the professional-driver problem rather than feature volume.
-3. Finalise the minimum viable vehicle model through an ADR.
-4. Finalise the Location/POI domain model.
-5. Define the provenance/trust data structures.
-6. Define the system architecture and provider boundaries.
-7. Define the initial database model.
-8. Define API boundaries.
-9. Define security and privacy requirements.
-10. Only then begin implementation.
+1. Research Portugal road/restriction sources.
+2. Research Portugal truck parking sources.
+3. Research Portugal restaurant/POI sources.
+4. Research European expansion sources.
+5. Compare provider pricing and quotas.
+6. Compare data storage/caching/commercial rights.
+7. Finalise the minimum viable vehicle model through an ADR.
+8. Finalise the Location/POI domain model.
+9. Define provenance/trust data structures.
+10. Define system architecture and provider boundaries.
+11. Define initial database model.
+12. Define API boundaries.
+13. Define security and privacy requirements.
+14. Only then begin implementation.
 
-## 12. North Star Direction
+## 13. North Star Direction
 
 The long-term product metric should focus on useful, trusted journey information rather than downloads alone.
 
@@ -176,7 +204,7 @@ Candidate North Star:
 
 The exact metric will be validated during product discovery.
 
-## 13. Historical Decision
+## 14. Historical Decision
 
 TruckFood has explicitly evolved from the original restaurant-discovery concept into a broader professional-driver journey platform. Restaurant discovery remains important, but the central problem is helping trucks **arrive, stop, eat, rest and continue** with better information.
 
