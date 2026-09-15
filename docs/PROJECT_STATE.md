@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.5.0  
+**Version:** 1.6.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-09-15  
 **Repository:** `AndreVazao/TruckFood`  
@@ -57,6 +57,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0001-product-direction.md`
 - `docs/adr/ADR-0002-provider-abstraction.md`
 - `docs/adr/ADR-0004-location-poi-domain-model.md`
+- `docs/adr/ADR-0005-initial-domain-persistence-model.md`
 
 ## 4. Repository Foundation
 
@@ -80,7 +81,7 @@ The professional truck driver is the highest-priority persona.
 
 The central entity is **Location / POI**, not Restaurant.
 
-ADR-0004 now formalises Location as the stable TruckFood geographic entity. A Location can expose multiple capabilities/services such as parking, food, fuel, showers, toilets, accommodation, workshop or other driver services.
+ADR-0004 formalises Location as the stable TruckFood geographic entity. A Location can expose multiple capabilities/services such as parking, food, fuel, showers, toilets, accommodation, workshop or other driver services.
 
 ### 5.3 Vehicle context
 
@@ -109,6 +110,25 @@ The MVP focuses on useful discovery of locations, truck-relevant parking, food, 
 ### 5.8 Provider abstraction
 
 External maps, routing, geocoding, restriction and POI services will be isolated behind provider adapters. Provider-specific objects must not become the TruckFood domain model.
+
+### 5.9 Domain / persistence boundary
+
+ADR-0005 establishes the first canonical domain model before database implementation.
+
+The model separates:
+
+- identity and user context;
+- vehicle and journey context;
+- Location and capabilities/services;
+- access rules, restrictions and suitability assessments;
+- observations, reviews, provenance and external references;
+- provider snapshots outside the canonical domain.
+
+TruckFood-owned canonical IDs are used for core entities. External provider IDs remain references and must not become primary identity.
+
+Time-varying facts must preserve their relevant observation, receipt, validation and effective periods rather than silently rewriting historical evidence.
+
+The initial model is deliberately implementation-neutral: exact SQL tables, PostGIS strategy, indexes, RLS, API contracts and provider schemas remain follow-up decisions.
 
 ## 6. Discovery Research Findings
 
@@ -201,6 +221,7 @@ The project must compare Portugal and European coverage, cost, quotas, licensing
 11. Allowing provider request volume to become an uncontrolled operating cost.
 12. Treating gross weight as a substitute for axle-specific restrictions.
 13. Entity duplication/conflicts when multiple providers describe the same physical location.
+14. Allowing time-varying facts to overwrite historical evidence without preserving their provenance and effective period.
 
 ## 10. Architecture Governance
 
@@ -218,23 +239,26 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model and Location/POI domain discovery baseline is now documented. The minimum viable vehicle context and Location domain direction have been accepted through ADRs. The next work is persistence/domain architecture and deeper commercial/licensing validation, not application coding.
+The product, provider/data, vehicle-model, Location/POI and initial domain/persistence discovery baseline is now documented. The minimum viable vehicle context and Location domain direction have been accepted through ADRs. ADR-0005 now establishes the canonical entity boundaries and provider-data separation before database implementation.
+
+The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define provenance/trust data structures.
-2. Define restriction/effective-time structures.
-3. Define initial persistence/domain model without provider coupling.
-4. Define system architecture and provider boundaries.
+1. Define provenance/trust data structures and explainable confidence.
+2. Define restriction and effective-time representation.
+3. Define system architecture and module boundaries.
+4. Define provider adapter contracts.
 5. Define API boundaries.
-6. Validate Portuguese official and concessionaire data sources in more depth.
-7. Research European expansion and cross-border restriction sources.
-8. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-9. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-10. Define security and privacy requirements.
-11. Define an initial operating-cost budget and request limits.
-12. Validate the vehicle and Location models against real driver journeys and parking/access cases.
-13. Only then begin implementation.
+6. Define security/privacy requirements and Supabase RLS strategy.
+7. Define spatial storage/query strategy and validate PostGIS direction.
+8. Validate Portuguese official and concessionaire data sources in more depth.
+9. Research European expansion and cross-border restriction sources.
+10. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+11. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+12. Define an initial operating-cost budget and request limits.
+13. Validate the domain model against real driver journeys, parking and access cases.
+14. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
