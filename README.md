@@ -1,45 +1,76 @@
 # TruckFood
 
-TruckFood is a platform for truck drivers to discover, share, and trust roadside restaurants, parking stops, and useful services along their routes.
+TruckFood is a professional truck-driver journey intelligence platform.
 
-## Mission
+Its mission is simple:
 
-Build a driver-first community that helps professional drivers quickly answer three questions:
+**Chegar. Parar. Comer. Descansar. Continuar.**
 
-- Where can I eat?
-- Where can I park safely?
-- Where can I rest or find services nearby?
+The platform is designed to help truck drivers avoid unsuitable access and road situations, find realistic places to stop and park, find food and services, and make better journey decisions.
 
-## Product direction
+## Core Problem
 
-The product will start with documentation only, then evolve into a mobile app, web platform, and admin backend.
+A truck driver does not only need to know where a restaurant is. The driver needs to know whether the journey and the stop make sense for the vehicle.
 
-## Core principles
+TruckFood therefore treats the following as first-class concepts:
 
-- Drivers first
-- Map-based discovery
-- Reliable community content
-- Safety and parking relevance
-- Scalable architecture from day one
-- Documentation before code
+- vehicle context;
+- road and access restrictions;
+- truck parking;
+- restaurants and food;
+- rest and useful services;
+- community observations;
+- data provenance, freshness and confidence.
 
-## Initial stack
+## Product Direction
+
+TruckFood will initially build a **Truck Intelligence layer** around existing map and routing capabilities rather than attempting to replace mature navigation systems immediately.
+
+The architecture will keep external providers behind adapters so that maps, routing, geocoding and data sources can evolve independently.
+
+## Product Interfaces
+
+The planned platform includes:
+
+- Mobile app
+- Web platform
+- Administration platform
+- Backend/API
+
+## Initial Technology Direction
 
 - Mobile: React Native with Expo
 - Web: Next.js
-- Backend: Supabase
-- Maps: OpenStreetMap / Mapbox / Google Maps abstraction
-- Repo: GitHub
+- Backend/data: Supabase / PostgreSQL / Auth / Storage
+- Maps/routing: provider abstraction
+- Source control: GitHub
 
-## First deliverables
+Technology choices remain provisional until discovery validates cost, licensing, coverage, performance and operational requirements.
 
-- Product vision and scope
-- Architecture overview
-- Data model
-- Roadmap
-- Persistent project state file
-- License
+## Safety & Trust Principle
+
+The absence of a known restriction is **not proof that no restriction exists**.
+
+TruckFood must not claim universally safe or legally compliant truck routing until the underlying data quality, coverage, licensing and validation justify that capability.
+
+## Documentation
+
+The repository is documentation-first. The project state, product decisions, requirements, data strategy and architecture decisions are maintained in `docs/`.
+
+Start with:
+
+- `PROJECT_CONSTITUTION.md`
+- `PRODUCT_MANIFESTO.md`
+- `docs/PROJECT_STATE.md`
+- `docs/VISION.md`
+- `docs/MVP.md`
+- `docs/DATA_STRATEGY.md`
+- `docs/PROVIDER_RESEARCH.md`
+- `docs/DISCOVERY_FINDINGS.md`
+- `docs/adr/`
 
 ## Status
 
-This repository is in its foundation stage.
+**Phase -1 — Discovery & Product Foundation**
+
+The product foundation and initial provider/data research are in progress. Application implementation begins only after the core architecture and data boundaries are validated.
