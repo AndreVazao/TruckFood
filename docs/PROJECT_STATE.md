@@ -2,7 +2,7 @@
 
 **Version:** 1.6.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-09-15  
+**Last Update:** 2026-09-26  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -58,6 +58,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0002-provider-abstraction.md`
 - `docs/adr/ADR-0004-location-poi-domain-model.md`
 - `docs/adr/ADR-0005-initial-domain-persistence-model.md`
+- `docs/adr/ADR-0006-provenance-trust-confidence-model.md`
 
 ## 4. Repository Foundation
 
