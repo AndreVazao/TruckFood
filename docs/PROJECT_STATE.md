@@ -59,6 +59,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0004-location-poi-domain-model.md`
 - `docs/adr/ADR-0005-initial-domain-persistence-model.md`
 - `docs/adr/ADR-0006-provenance-trust-confidence-model.md`
+- `docs/adr/ADR-0007-restriction-effective-time-model.md`
 
 ## 4. Repository Foundation
 
