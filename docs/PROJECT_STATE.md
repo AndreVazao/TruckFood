@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.7.0  
+**Version:** 1.8.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-10-14  
 **Repository:** `AndreVazao/TruckFood`  
@@ -61,6 +61,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0006-provenance-trust-confidence-model.md`
 - `docs/adr/ADR-0007-restriction-effective-time-model.md`
 - `docs/adr/ADR-0008-system-architecture-module-boundaries.md`
+- `docs/adr/ADR-0009-api-boundaries-error-contracts.md`
 
 ## 4. Repository Foundation
 
@@ -135,7 +136,11 @@ The initial model is deliberately implementation-neutral: exact SQL tables, Post
 
 ### 5.10 Architecture direction
 
-ADR-0008 proposes a modular monolith with explicit Presentation, Application, Domain, Persistence, Integration/Provider Adapter and optional Background Work boundaries. Domain logic remains independent of UI frameworks, Supabase SDKs and vendor-specific types. The first implementation should avoid microservices and unnecessary infrastructure. Security/RLS, API contracts, spatial storage and provider contracts remain separate decisions.
+ADR-0008 proposes a modular monolith with explicit Presentation, Application, Domain, Persistence, Integration/Provider Adapter and optional Background Work boundaries. Domain logic remains independent of UI frameworks, Supabase SDKs and vendor-specific types. The first implementation should avoid microservices and unnecessary infrastructure. Security/RLS, spatial storage and provider contracts remain separate decisions.
+
+### 5.11 API boundary direction
+
+ADR-0009 proposes use-case-oriented, TruckFood-owned API contracts. The API must validate input, authorize protected operations, return stable response shapes, and distinguish empty results from partial results, provider failures, unknown data, conflicts and stale evidence. Exact endpoints, transport details, error codes, versioning and rate limits remain open.
 
 ## 6. Discovery Research Findings
 
@@ -246,16 +251,16 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time and proposed system-architecture discovery baseline is documented. ADR-0008 proposes a modular-monolith direction, while API, security/RLS, spatial storage and provider contracts remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture and API-boundary discovery baseline is documented. ADR-0008 proposes a modular-monolith direction and ADR-0009 establishes proposed API contract principles. Security/RLS, spatial storage and provider contracts remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define API boundaries and error contracts.
-2. Define security/privacy, authorization and Supabase RLS strategy.
-3. Define spatial storage/query strategy and validate PostGIS direction.
-4. Define provider adapter contracts and capability declarations.
+1. Define security/privacy, authorization and Supabase RLS strategy.
+2. Define spatial storage/query strategy and validate PostGIS direction.
+3. Define provider adapter contracts and capability declarations.
+4. Specify the first MVP API schemas and error codes.
 5. Define an MVP migration and rollout plan.
 6. Define freshness/review policies by data family.
 7. Validate Portuguese official and concessionaire data sources in more depth.
