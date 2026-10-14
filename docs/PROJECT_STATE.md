@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.9.0  
+**Version:** 2.0.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-10-14  
 **Repository:** `AndreVazao/TruckFood`  
@@ -63,6 +63,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0008-system-architecture-module-boundaries.md`
 - `docs/adr/ADR-0009-api-boundaries-error-contracts.md`
 - `docs/adr/ADR-0010-offline-map-packages-vehicle-modes.md`
+- `docs/adr/ADR-0011-security-privacy-authorization-rls.md`
 
 ## 4. Repository Foundation
 
@@ -146,6 +147,10 @@ ADR-0009 proposes use-case-oriented, TruckFood-owned API contracts. The API must
 ### 5.12 Offline maps and vehicle modes
 
 ADR-0010 records the product direction for user-managed offline area packages and an explicit travel-mode choice: car, truck or special/oversized load. Offline capabilities must be separated into map viewing, saved-place search, known restrictions, local route calculation and truck-aware evaluation. Each package must show coverage, data families, source attribution and last update. Lack of connectivity means no live traffic or guaranteed awareness of new/temporary restrictions. Full offline truck routing remains conditional on provider licensing, local data quality and validation.
+
+### 5.13 Security, privacy and authorization
+
+ADR-0011 proposes a least-privilege, deny-by-default model across APIs, persistence, community content, administration and offline storage. Public location discovery must expose only intentionally public fields; private profiles, vehicle data and journeys must be owner-scoped. User submissions remain untrusted until appropriately reviewed. If Supabase is selected, RLS must be designed per operation and tested against anonymous access, cross-user access, ownership changes and privilege escalation. Privileged secrets must remain server-side. Offline caches and sync must respect account boundaries and must not trust cached permissions. These are documented requirements, not yet implemented security controls.
 
 ## 6. Discovery Research Findings
 
@@ -256,16 +261,16 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries and offline/vehicle-mode direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles and ADR-0010 records staged offline package and vehicle-mode requirements. Security/RLS, spatial storage and provider contracts remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction and security/privacy direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, and ADR-0011 proposes least-privilege authorization and RLS requirements. Spatial storage and provider contracts remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define security/privacy, authorization and Supabase RLS strategy.
-2. Define spatial storage/query strategy and validate PostGIS direction.
-3. Define provider adapter contracts and capability declarations, including offline storage rights.
-4. Specify the first MVP API schemas and error codes.
+1. Define the spatial storage/query strategy and validate the PostGIS direction.
+2. Define provider adapter contracts and capability declarations, including offline storage rights.
+3. Specify the first MVP API schemas, error codes and authorization matrix.
+4. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
 5. Evaluate offline-capable map/routing options and licensing.
 6. Define the first vehicle-mode/profile UX and local package requirements.
 7. Define an MVP migration and rollout plan.
@@ -276,7 +281,8 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 12. Compare OSM infrastructure/hosting approaches with commercial map hosting.
 13. Define an initial operating-cost budget and request limits.
 14. Validate the architecture/domain model against real driver journeys, parking and access cases.
-15. Only then freeze the first database migration and begin implementation.
+15. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
+16. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
