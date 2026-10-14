@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 1.6.0  
+**Version:** 1.7.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-09-26  
+**Last Update:** 2026-10-14  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -60,6 +60,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0005-initial-domain-persistence-model.md`
 - `docs/adr/ADR-0006-provenance-trust-confidence-model.md`
 - `docs/adr/ADR-0007-restriction-effective-time-model.md`
+- `docs/adr/ADR-0008-system-architecture-module-boundaries.md`
 
 ## 4. Repository Foundation
 
@@ -131,6 +132,10 @@ TruckFood-owned canonical IDs are used for core entities. External provider IDs 
 Time-varying facts must preserve their relevant observation, receipt, validation and effective periods rather than silently rewriting historical evidence.
 
 The initial model is deliberately implementation-neutral: exact SQL tables, PostGIS strategy, indexes, RLS, API contracts and provider schemas remain follow-up decisions.
+
+### 5.10 Architecture direction
+
+ADR-0008 proposes a modular monolith with explicit Presentation, Application, Domain, Persistence, Integration/Provider Adapter and optional Background Work boundaries. Domain logic remains independent of UI frameworks, Supabase SDKs and vendor-specific types. The first implementation should avoid microservices and unnecessary infrastructure. Security/RLS, API contracts, spatial storage and provider contracts remain separate decisions.
 
 ## 6. Discovery Research Findings
 
@@ -241,26 +246,25 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI and initial domain/persistence discovery baseline is now documented. The minimum viable vehicle context and Location domain direction have been accepted through ADRs. ADR-0005 now establishes the canonical entity boundaries and provider-data separation before database implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time and proposed system-architecture discovery baseline is documented. ADR-0008 proposes a modular-monolith direction, while API, security/RLS, spatial storage and provider contracts remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define provenance/trust data structures and explainable confidence.
-2. Define restriction and effective-time representation.
-3. Define system architecture and module boundaries.
-4. Define provider adapter contracts.
-5. Define API boundaries.
-6. Define security/privacy requirements and Supabase RLS strategy.
-7. Define spatial storage/query strategy and validate PostGIS direction.
-8. Validate Portuguese official and concessionaire data sources in more depth.
-9. Research European expansion and cross-border restriction sources.
-10. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-11. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-12. Define an initial operating-cost budget and request limits.
-13. Validate the domain model against real driver journeys, parking and access cases.
-14. Only then freeze the first database migration and begin implementation.
+1. Define API boundaries and error contracts.
+2. Define security/privacy, authorization and Supabase RLS strategy.
+3. Define spatial storage/query strategy and validate PostGIS direction.
+4. Define provider adapter contracts and capability declarations.
+5. Define an MVP migration and rollout plan.
+6. Define freshness/review policies by data family.
+7. Validate Portuguese official and concessionaire data sources in more depth.
+8. Research European expansion and cross-border restriction sources.
+9. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+10. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+11. Define an initial operating-cost budget and request limits.
+12. Validate the architecture/domain model against real driver journeys, parking and access cases.
+13. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
