@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 1.8.0  
+**Version:** 1.9.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-10-14  
 **Repository:** `AndreVazao/TruckFood`  
@@ -62,6 +62,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0007-restriction-effective-time-model.md`
 - `docs/adr/ADR-0008-system-architecture-module-boundaries.md`
 - `docs/adr/ADR-0009-api-boundaries-error-contracts.md`
+- `docs/adr/ADR-0010-offline-map-packages-vehicle-modes.md`
 
 ## 4. Repository Foundation
 
@@ -141,6 +142,10 @@ ADR-0008 proposes a modular monolith with explicit Presentation, Application, Do
 ### 5.11 API boundary direction
 
 ADR-0009 proposes use-case-oriented, TruckFood-owned API contracts. The API must validate input, authorize protected operations, return stable response shapes, and distinguish empty results from partial results, provider failures, unknown data, conflicts and stale evidence. Exact endpoints, transport details, error codes, versioning and rate limits remain open.
+
+### 5.12 Offline maps and vehicle modes
+
+ADR-0010 records the product direction for user-managed offline area packages and an explicit travel-mode choice: car, truck or special/oversized load. Offline capabilities must be separated into map viewing, saved-place search, known restrictions, local route calculation and truck-aware evaluation. Each package must show coverage, data families, source attribution and last update. Lack of connectivity means no live traffic or guaranteed awareness of new/temporary restrictions. Full offline truck routing remains conditional on provider licensing, local data quality and validation.
 
 ## 6. Discovery Research Findings
 
@@ -251,7 +256,7 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture and API-boundary discovery baseline is documented. ADR-0008 proposes a modular-monolith direction and ADR-0009 establishes proposed API contract principles. Security/RLS, spatial storage and provider contracts remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries and offline/vehicle-mode direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles and ADR-0010 records staged offline package and vehicle-mode requirements. Security/RLS, spatial storage and provider contracts remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
@@ -259,17 +264,19 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 
 1. Define security/privacy, authorization and Supabase RLS strategy.
 2. Define spatial storage/query strategy and validate PostGIS direction.
-3. Define provider adapter contracts and capability declarations.
+3. Define provider adapter contracts and capability declarations, including offline storage rights.
 4. Specify the first MVP API schemas and error codes.
-5. Define an MVP migration and rollout plan.
-6. Define freshness/review policies by data family.
-7. Validate Portuguese official and concessionaire data sources in more depth.
-8. Research European expansion and cross-border restriction sources.
-9. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-10. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-11. Define an initial operating-cost budget and request limits.
-12. Validate the architecture/domain model against real driver journeys, parking and access cases.
-13. Only then freeze the first database migration and begin implementation.
+5. Evaluate offline-capable map/routing options and licensing.
+6. Define the first vehicle-mode/profile UX and local package requirements.
+7. Define an MVP migration and rollout plan.
+8. Define freshness/review policies by data family.
+9. Validate Portuguese official and concessionaire data sources in more depth.
+10. Research European expansion and cross-border restriction sources.
+11. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+12. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+13. Define an initial operating-cost budget and request limits.
+14. Validate the architecture/domain model against real driver journeys, parking and access cases.
+15. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
