@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 2.0.0  
+**Version:** 2.1.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-10-14  
+**Last Update:** 2026-10-30  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -64,6 +64,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0009-api-boundaries-error-contracts.md`
 - `docs/adr/ADR-0010-offline-map-packages-vehicle-modes.md`
 - `docs/adr/ADR-0011-security-privacy-authorization-rls.md`
+- `docs/adr/ADR-0012-geospatial-storage-query-strategy.md`
 
 ## 4. Repository Foundation
 
@@ -151,6 +152,10 @@ ADR-0010 records the product direction for user-managed offline area packages an
 ### 5.13 Security, privacy and authorization
 
 ADR-0011 proposes a least-privilege, deny-by-default model across APIs, persistence, community content, administration and offline storage. Public location discovery must expose only intentionally public fields; private profiles, vehicle data and journeys must be owner-scoped. User submissions remain untrusted until appropriately reviewed. If Supabase is selected, RLS must be designed per operation and tested against anonymous access, cross-user access, ownership changes and privilege escalation. Privileged secrets must remain server-side. Offline caches and sync must respect account boundaries and must not trust cached permissions. These are documented requirements, not yet implemented security controls.
+
+### 5.14 Geospatial storage and queries
+
+ADR-0012 proposes PostgreSQL/PostGIS as the preferred spatial persistence direction, conditional on confirming managed-hosting support, version, cost, backup/restore and deployment constraints. EPSG:4326 is the canonical interchange reference, with explicit longitude/latitude ordering and preservation of source precision/uncertainty. Location sites, entrances, parking/service areas, roads, restrictions and coverage regions require distinct spatial representations; a site pin is not a truck entrance. Nearby, corridor, restriction-intersection, viewport and coverage queries are required progressively. Spatial proximity does not establish vehicle access or safety. Geometry storage, provider licensing, ODbL obligations, RLS and offline package rights must be validated before migrations. PostGIS is a proposed direction, not an enabled extension or implemented feature.
 
 ## 6. Discovery Research Findings
 
@@ -261,28 +266,30 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction and security/privacy direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, and ADR-0011 proposes least-privilege authorization and RLS requirements. Spatial storage and provider contracts remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction and preferred geospatial storage/query direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, and ADR-0012 proposes PostgreSQL/PostGIS subject to hosting, licensing and query validation. Provider contracts and physical spatial schema remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define the spatial storage/query strategy and validate the PostGIS direction.
-2. Define provider adapter contracts and capability declarations, including offline storage rights.
-3. Specify the first MVP API schemas, error codes and authorization matrix.
-4. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
-5. Evaluate offline-capable map/routing options and licensing.
-6. Define the first vehicle-mode/profile UX and local package requirements.
-7. Define an MVP migration and rollout plan.
-8. Define freshness/review policies by data family.
-9. Validate Portuguese official and concessionaire data sources in more depth.
-10. Research European expansion and cross-border restriction sources.
-11. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-12. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-13. Define an initial operating-cost budget and request limits.
-14. Validate the architecture/domain model against real driver journeys, parking and access cases.
-15. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
-16. Only then freeze the first database migration and begin implementation.
+1. Define provider adapter contracts and capability declarations, including offline storage/caching/redistribution rights.
+2. Validate PostgreSQL/PostGIS availability, version, hosting cost, backup/restore and local-development parity.
+3. Prototype nearby, route-corridor and restriction-intersection queries using representative Portugal-first sample data; compare geometry/geography choices and query plans.
+4. Define the physical Location, entrance, service-area and restriction geometry relationships, including precision/quality metadata.
+5. Specify the first MVP API schemas, error codes and authorization matrix, including bounded spatial-query parameters.
+6. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
+7. Evaluate offline-capable map/routing options and licensing.
+8. Define the first vehicle-mode/profile UX and local package requirements.
+9. Define an MVP migration and rollout plan.
+10. Define freshness/review policies by data family.
+11. Validate Portuguese official and concessionaire data sources in more depth.
+12. Research European expansion and cross-border restriction sources.
+13. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+14. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+15. Define an initial operating-cost budget and request limits.
+16. Validate the architecture/domain model against real driver journeys, parking and access cases.
+17. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
+18. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
