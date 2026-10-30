@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 2.1.0  
+**Version:** 2.2.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-10-30  
 **Repository:** `AndreVazao/TruckFood`  
@@ -65,6 +65,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0010-offline-map-packages-vehicle-modes.md`
 - `docs/adr/ADR-0011-security-privacy-authorization-rls.md`
 - `docs/adr/ADR-0012-geospatial-storage-query-strategy.md`
+- `docs/adr/ADR-0013-provider-adapter-contracts-capability-model.md`
 
 ## 4. Repository Foundation
 
@@ -156,6 +157,10 @@ ADR-0011 proposes a least-privilege, deny-by-default model across APIs, persiste
 ### 5.14 Geospatial storage and queries
 
 ADR-0012 proposes PostgreSQL/PostGIS as the preferred spatial persistence direction, conditional on confirming managed-hosting support, version, cost, backup/restore and deployment constraints. EPSG:4326 is the canonical interchange reference, with explicit longitude/latitude ordering and preservation of source precision/uncertainty. Location sites, entrances, parking/service areas, roads, restrictions and coverage regions require distinct spatial representations; a site pin is not a truck entrance. Nearby, corridor, restriction-intersection, viewport and coverage queries are required progressively. Spatial proximity does not establish vehicle access or safety. Geometry storage, provider licensing, ODbL obligations, RLS and offline package rights must be validated before migrations. PostGIS is a proposed direction, not an enabled extension or implemented feature.
+
+### 5.15 Provider adapters and capability contracts
+
+ADR-0013 proposes TruckFood-owned provider ports and adapters for map display, geocoding, routing, restriction/data, POI/business and TruckFood-owned data. Application/domain contracts must not expose vendor SDK types or identifiers as canonical entities. Each adapter must declare supported operations, geographic coverage, actual vehicle parameters, time-dependent support, output/freshness limitations, quotas, costs, attribution and separate rights for display, transient processing, caching, persistent storage, transformation, redistribution and offline use. Unsupported, empty, partial, stale, rate-limited and unavailable outcomes must remain distinguishable. Fallback is permitted only when the alternative meets the required capability and rights; a generic car route must never silently replace a required truck route. Deterministic fixture-based contract tests must work without paid credentials. These are architecture requirements; no provider adapter or live integration is claimed implemented.
 
 ## 6. Discovery Research Findings
 
@@ -266,30 +271,33 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction and preferred geospatial storage/query direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, and ADR-0012 proposes PostgreSQL/PostGIS subject to hosting, licensing and query validation. Provider contracts and physical spatial schema remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction and provider adapter/capability contract direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, and ADR-0013 defines TruckFood-owned provider contracts and capability declarations. Physical spatial schema, concrete provider selection and live integrations remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
-1. Define provider adapter contracts and capability declarations, including offline storage/caching/redistribution rights.
-2. Validate PostgreSQL/PostGIS availability, version, hosting cost, backup/restore and local-development parity.
-3. Prototype nearby, route-corridor and restriction-intersection queries using representative Portugal-first sample data; compare geometry/geography choices and query plans.
-4. Define the physical Location, entrance, service-area and restriction geometry relationships, including precision/quality metadata.
-5. Specify the first MVP API schemas, error codes and authorization matrix, including bounded spatial-query parameters.
-6. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
-7. Evaluate offline-capable map/routing options and licensing.
-8. Define the first vehicle-mode/profile UX and local package requirements.
-9. Define an MVP migration and rollout plan.
-10. Define freshness/review policies by data family.
-11. Validate Portuguese official and concessionaire data sources in more depth.
-12. Research European expansion and cross-border restriction sources.
-13. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-14. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-15. Define an initial operating-cost budget and request limits.
-16. Validate the architecture/domain model against real driver journeys, parking and access cases.
-17. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
-18. Only then freeze the first database migration and begin implementation.
+1. Define versioned language-neutral provider contract schemas, outcome states and stable error categories.
+2. Define the provider registry/configuration and capability declaration format.
+3. Validate PostgreSQL/PostGIS availability, version, hosting cost, backup/restore and local-development parity.
+4. Prototype nearby, route-corridor and restriction-intersection queries using representative Portugal-first sample data; compare geometry/geography choices and query plans.
+5. Define the physical Location, entrance, service-area and restriction geometry relationships, including precision/quality metadata.
+6. Specify the first MVP API schemas, error codes and authorization matrix, including bounded spatial-query parameters.
+7. Build fake/in-memory provider adapters and deterministic conformance tests before live integrations.
+8. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
+9. Evaluate offline-capable map/routing options and licensing, including source-specific caching and redistribution rights.
+10. Define measurable Portugal-first geographic and truck-parameter coverage requirements.
+11. Define the first vehicle-mode/profile UX and local package requirements.
+12. Define an MVP migration and rollout plan.
+13. Define freshness/review policies by data family.
+14. Validate Portuguese official and concessionaire data sources in more depth.
+15. Research European expansion and cross-border restriction sources.
+16. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+17. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+18. Define an initial operating-cost budget, quotas and request limits.
+19. Validate the architecture/domain model against real driver journeys, parking and access cases.
+20. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
+21. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
