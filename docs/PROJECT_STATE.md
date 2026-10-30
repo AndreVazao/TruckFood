@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 2.2.0  
+**Version:** 2.3.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-10-30  
 **Repository:** `AndreVazao/TruckFood`  
@@ -66,6 +66,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0011-security-privacy-authorization-rls.md`
 - `docs/adr/ADR-0012-geospatial-storage-query-strategy.md`
 - `docs/adr/ADR-0013-provider-adapter-contracts-capability-model.md`
+- `docs/adr/ADR-0014-mvp-api-cross-platform-vehicle-experience.md`
 
 ## 4. Repository Foundation
 
@@ -271,7 +272,7 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction and provider adapter/capability contract direction are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, and ADR-0013 defines TruckFood-owned provider contracts and capability declarations. Physical spatial schema, concrete provider selection and live integrations remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction, provider adapter/capability contracts and cross-platform/vehicle-selection requirements are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, ADR-0013 defines TruckFood-owned provider contracts and capability declarations, and ADR-0014 defines cross-platform experience and explicit multi-profile vehicle selection. Physical spatial schema, concrete provider selection, exact client support matrix and live integrations remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
@@ -279,25 +280,29 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 
 1. Define versioned language-neutral provider contract schemas, outcome states and stable error categories.
 2. Define the provider registry/configuration and capability declaration format.
-3. Validate PostgreSQL/PostGIS availability, version, hosting cost, backup/restore and local-development parity.
-4. Prototype nearby, route-corridor and restriction-intersection queries using representative Portugal-first sample data; compare geometry/geography choices and query plans.
-5. Define the physical Location, entrance, service-area and restriction geometry relationships, including precision/quality metadata.
-6. Specify the first MVP API schemas, error codes and authorization matrix, including bounded spatial-query parameters.
-7. Build fake/in-memory provider adapters and deterministic conformance tests before live integrations.
-8. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
-9. Evaluate offline-capable map/routing options and licensing, including source-specific caching and redistribution rights.
-10. Define measurable Portugal-first geographic and truck-parameter coverage requirements.
-11. Define the first vehicle-mode/profile UX and local package requirements.
-12. Define an MVP migration and rollout plan.
-13. Define freshness/review policies by data family.
-14. Validate Portuguese official and concessionaire data sources in more depth.
-15. Research European expansion and cross-border restriction sources.
-16. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
-17. Compare OSM infrastructure/hosting approaches with commercial map hosting.
-18. Define an initial operating-cost budget, quotas and request limits.
-19. Validate the architecture/domain model against real driver journeys, parking and access cases.
-20. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
-21. Only then freeze the first database migration and begin implementation.
+3. Specify MVP API request/response schemas, authorization matrix and error catalog.
+4. Define client technology options and a realistic Android/OEM/screen/performance and PC/browser support matrix using target-user/device evidence.
+5. Prototype responsive UX and vehicle-profile selection flows for phone, tablet and PC.
+6. Refine the vehicle model for full combinations, multiple trailers, axle-group loads, load dimensions and jurisdiction-specific permits/ADR attributes.
+7. Define vehicle-profile completeness rules, active journey selection and immutable historical profile snapshots.
+8. Define cross-platform client capability negotiation, local database migrations and offline package compatibility.
+9. Validate PostgreSQL/PostGIS availability, version, hosting cost, backup/restore and local-development parity.
+10. Prototype nearby, route-corridor and restriction-intersection queries using representative Portugal-first sample data; compare geometry/geography choices and query plans.
+11. Define the physical Location, entrance, service-area and restriction geometry relationships, including precision/quality metadata.
+12. Build fake/in-memory provider adapters and deterministic conformance tests before live integrations.
+13. Validate the proposed security model against the eventual schema; define RLS policies and executable security tests if Supabase is selected.
+14. Evaluate offline-capable map/routing options and licensing, including source-specific caching and redistribution rights.
+15. Define measurable Portugal-first geographic and truck-parameter coverage requirements.
+16. Define an MVP migration and rollout plan.
+17. Define freshness/review policies by data family.
+18. Validate Portuguese official and concessionaire data sources in more depth.
+19. Research European expansion and cross-border restriction sources.
+20. Obtain/compare current commercial pricing and contractual terms for HERE and TomTom truck routing.
+21. Compare OSM infrastructure/hosting approaches with commercial map hosting.
+22. Define an initial operating-cost budget, quotas and request limits.
+23. Validate the architecture/domain model against real driver journeys, parking and access cases.
+24. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
+25. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
