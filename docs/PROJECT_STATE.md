@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 2.6.0  
+**Version:** 2.7.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-08  
 **Repository:** `AndreVazao/TruckFood`  
@@ -70,6 +70,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0015-fleet-organizations-driver-groups-live-location.md`
 - `docs/adr/ADR-0016-organization-membership-fleet-assignments.md`
 - `docs/adr/ADR-0017-authorization-model-permission-matrix.md`
+- `docs/adr/ADR-0018-database-logical-physical-model.md`
 
 ## 4. Repository Foundation
 
@@ -185,6 +186,13 @@ ADR-0016 also separates a reusable, versioned technical Vehicle Profile from an 
 ADR-0017 proposes a permission-based, deny-by-default authorization model that extends ADR-0011 and ADR-0016. It defines stable permission namespaces for organization administration, memberships, groups, fleet vehicles, vehicle profiles, assignments, location sessions/history, compliance, audit and subscription entitlements. Authorization combines authenticated subject, active organization membership, explicit permission, resource scope (self, assigned, group, organization, public or exceptional platform), resource lifecycle and contextual conditions. Roles are permission bundles, not trusted client claims.
 
 A conservative initial role matrix is documented for owner, fleet_admin, dispatcher, safety_manager, driver and viewer. It deliberately denies ordinary access to historical location by default; live location requires a valid, visible, purpose-bound session and matching scope. Sensitive fields, reads, exports and support access require minimization and audit. Revocation, offline caches, background jobs, object storage, webhooks and exports must observe the same tenant boundaries. ADR-0017 also defines a 20-case minimum security test matrix and implementation gates. The matrix remains proposed pending product and privacy/legal review; no RLS, authorization guard, audit pipeline or security test is claimed implemented.
+
+
+### 5.20 Logical and physical database model
+
+ADR-0018 translates the established domain into proposed relational table families for identity/personal driver context, organizations/memberships/groups, vehicle profiles and immutable versions, fleet assets/assignments, journeys/routes/snapshots, locations/services/entrances/access, restrictions and temporal applicability, evidence/provenance/community, location-sharing sessions/telemetry, plans/entitlements/usage and audit/operational records. It defines canonical UUID identity, tenant-aware composite foreign keys, temporal conventions, candidate constraints/indexes, retention/deletion principles, migration sequencing and validation gates.
+
+The design prefers PostgreSQL with PostGIS conditional on hosting/version/cost, licensing, backup/restore and query validation. It explicitly separates technical vehicle profiles from fleet assets and historical journey snapshots; separates location capability from access and suitability; and requires tenant isolation across indirect child records. Sensitive phone-location samples require a valid visible purpose-bound session and restricted retention/access. These are proposed database decisions only: no SQL schema, migration, Supabase configuration, PostGIS extension, RLS policy, trigger or persistence implementation has been applied.
 
 ## 6. Discovery Research Findings
 
