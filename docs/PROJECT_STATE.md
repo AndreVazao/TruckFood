@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 2.5.0  
+**Version:** 2.6.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-02  
+**Last Update:** 2026-11-08  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -69,6 +69,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0014-mvp-api-cross-platform-vehicle-experience.md`
 - `docs/adr/ADR-0015-fleet-organizations-driver-groups-live-location.md`
 - `docs/adr/ADR-0016-organization-membership-fleet-assignments.md`
+- `docs/adr/ADR-0017-authorization-model-permission-matrix.md`
 
 ## 4. Repository Foundation
 
@@ -179,6 +180,12 @@ ADR-0016 proposes a complete multi-tenant fleet domain. User Account and persona
 
 ADR-0016 also separates a reusable, versioned technical Vehicle Profile from an organization-owned Fleet Vehicle asset and from a time-bounded driver/vehicle/group/task Assignment. Assignment overlap/exclusivity is policy-driven rather than assumed universally; history is auditable and journey records preserve the exact profile snapshot used. Subscription, Plan, Entitlement and Usage are separate from authorization: payment status alone does not grant resource access. Offboarding and organization closure revoke access and active sharing, preserve required history and do not delete a user's personal account. Location sharing remains purpose-bound, visible, time-limited and assignment-aware under ADR-0015. This is proposed domain architecture only; none of these fleet capabilities are implemented.
 
+### 5.19 Authorization model and permission matrix
+
+ADR-0017 proposes a permission-based, deny-by-default authorization model that extends ADR-0011 and ADR-0016. It defines stable permission namespaces for organization administration, memberships, groups, fleet vehicles, vehicle profiles, assignments, location sessions/history, compliance, audit and subscription entitlements. Authorization combines authenticated subject, active organization membership, explicit permission, resource scope (self, assigned, group, organization, public or exceptional platform), resource lifecycle and contextual conditions. Roles are permission bundles, not trusted client claims.
+
+A conservative initial role matrix is documented for owner, fleet_admin, dispatcher, safety_manager, driver and viewer. It deliberately denies ordinary access to historical location by default; live location requires a valid, visible, purpose-bound session and matching scope. Sensitive fields, reads, exports and support access require minimization and audit. Revocation, offline caches, background jobs, object storage, webhooks and exports must observe the same tenant boundaries. ADR-0017 also defines a 20-case minimum security test matrix and implementation gates. The matrix remains proposed pending product and privacy/legal review; no RLS, authorization guard, audit pipeline or security test is claimed implemented.
+
 ## 6. Discovery Research Findings
 
 Current web research confirms:
@@ -288,14 +295,14 @@ The project will use:
 
 **Status:** In progress.
 
-The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction, provider adapter/capability contracts, cross-platform/vehicle-selection requirements and future fleet-management/live-location plus organization/membership/group/fleet-asset/assignment domain requirements are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, ADR-0013 defines TruckFood-owned provider contracts and capability declarations, and ADR-0014 defines cross-platform experience and explicit multi-profile vehicle selection. Physical spatial schema, concrete provider selection, exact client support matrix, fleet privacy/legal policy, tenancy implementation and live integrations remain open before implementation.
+The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction, provider adapter/capability contracts, cross-platform/vehicle-selection requirements, future fleet organization/membership/group/asset/assignment domain and proposed authorization permission matrix are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, ADR-0013 defines TruckFood-owned provider contracts and capability declarations, and ADR-0014 defines cross-platform experience and explicit multi-profile vehicle selection. Physical spatial schema, concrete provider selection, exact client support matrix, fleet privacy/legal policy, tenancy implementation and live integrations remain open before implementation.
 
 The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
 1. Define versioned language-neutral provider contract schemas, outcome states and stable error categories.
-2. Review ADR-0016's organization, membership, group, fleet-vehicle, assignment and subscription-entitlement domain contracts; resolve its open questions before physical schema design.
+2. Review ADR-0016 and ADR-0017 together; approve the organization domain, role/permission matrix, scope rules and open questions before physical schema design.
 3. Specify privacy-reviewed location-sharing session lifecycle, driver notice, permissions, off-duty cessation, retention and audit requirements.
 4. Define fleet dashboard API scopes and source/freshness semantics for driver-phone GPS versus vehicle tracker telemetry.
 5. Validate Portuguese/EU employment privacy obligations, lawful basis, controller/processor roles and any required impact assessment before any fleet pilot.
