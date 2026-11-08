@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 2.7.0  
+**Version:** 2.8.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-08  
 **Repository:** `AndreVazao/TruckFood`  
@@ -71,6 +71,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0016-organization-membership-fleet-assignments.md`
 - `docs/adr/ADR-0017-authorization-model-permission-matrix.md`
 - `docs/adr/ADR-0018-database-logical-physical-model.md`
+- `docs/specifications/DATABASE_SCHEMA_V1.md`
 
 ## 4. Repository Foundation
 
@@ -193,6 +194,13 @@ A conservative initial role matrix is documented for owner, fleet_admin, dispatc
 ADR-0018 translates the established domain into proposed relational table families for identity/personal driver context, organizations/memberships/groups, vehicle profiles and immutable versions, fleet assets/assignments, journeys/routes/snapshots, locations/services/entrances/access, restrictions and temporal applicability, evidence/provenance/community, location-sharing sessions/telemetry, plans/entitlements/usage and audit/operational records. It defines canonical UUID identity, tenant-aware composite foreign keys, temporal conventions, candidate constraints/indexes, retention/deletion principles, migration sequencing and validation gates.
 
 The design prefers PostgreSQL with PostGIS conditional on hosting/version/cost, licensing, backup/restore and query validation. It explicitly separates technical vehicle profiles from fleet assets and historical journey snapshots; separates location capability from access and suitability; and requires tenant isolation across indirect child records. Sensitive phone-location samples require a valid visible purpose-bound session and restricted retention/access. These are proposed database decisions only: no SQL schema, migration, Supabase configuration, PostGIS extension, RLS policy, trigger or persistence implementation has been applied.
+
+
+### 5.21 First database schema specification
+
+`docs/specifications/DATABASE_SCHEMA_V1.md` narrows ADR-0018 into a proposed first-release persistence contract. It specifies candidate columns, types, constraints and indexes for user profiles, personal vehicle profiles and immutable versions, location/service/capability records, geometry/provenance, external references, observations, optional reviews and optional journey snapshots. It distinguishes included foundations from deferred fleet, subscription, live-location, full restriction-engine and offline-package domains.
+
+The specification defines metric canonical units, UTC timestamps, explicit unknown/not-applicable semantics, immutable vehicle versions and journey snapshots, public/private data boundaries, owner isolation and migration gates. Reviews and journey history remain explicit scope decisions; PostGIS and Supabase remain conditional. It is a specification only: no SQL, migration, database instance, RLS policy, seed data or application persistence has been created or deployed.
 
 ## 6. Discovery Research Findings
 
@@ -337,7 +345,7 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 26. Define an initial operating-cost budget, quotas and request limits.
 27. Validate the architecture/domain model against real driver journeys, parking and access cases.
 28. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
-29. Only then freeze the first database migration and begin implementation.
+29. Review and approve the first-release table scope in `docs/specifications/DATABASE_SCHEMA_V1.md`, especially journeys, reviews and full vehicle-combination support.\n30. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.\n31. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.\n32. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.\n33. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
