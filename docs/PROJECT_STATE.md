@@ -353,7 +353,13 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 26. Define an initial operating-cost budget, quotas and request limits.
 27. Validate the architecture/domain model against real driver journeys, parking and access cases.
 28. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
-29. Review and approve the first-release table scope in `docs/specifications/DATABASE_SCHEMA_V1.md`, especially journeys, reviews and full vehicle-combination support.\n30. Review and freeze the API endpoint scope, error catalog, auth requirements and domain enums in `docs/specifications/API_CONTRACT_V1.md`.\n31. Generate and validate OpenAPI 3.1 and reusable request/response schemas from the approved API contract.\n32. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.\n33. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.\n34. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.\n35. Only then freeze the first database migration and begin implementation.
+29. Review and approve the first-release table scope in `docs/specifications/DATABASE_SCHEMA_V1.md`, especially journeys, reviews and full vehicle-combination support.
+30. Review and freeze the API endpoint scope, error catalog, auth requirements and domain enums in `docs/specifications/API_CONTRACT_V1.md`.
+31. Generate and validate OpenAPI 3.1 and reusable request/response schemas from the approved API contract.
+32. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.
+33. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.
+34. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.
+35. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
