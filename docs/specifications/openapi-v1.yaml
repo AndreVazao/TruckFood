@@ -1,0 +1,1145 @@
+openapi: 3.1.0
+info:
+  title: TruckFood API
+  version: 1.0.0
+  summary: TruckFood-owned API contract for driver, vehicle and location experiences.
+  description: |
+    Proposed API specification derived from docs/specifications/API_CONTRACT_V1.md.
+    This file is a contract artifact, not an implemented or deployed API.
+    The fleet/organization namespace is intentionally excluded from this MVP specification.
+    Journey and review operations are conditional scope and must be enabled only if approved
+    for the release. Unknown vehicle/access data must never be interpreted as safe.
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.example.invalid/api/v1
+    description: Illustrative server URL; replace only when deployment is selected.
+tags:
+  - name: System
+  - name: Driver
+  - name: Vehicles
+  - name: Locations
+  - name: Community
+  - name: Journeys
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness check
+      description: Public minimal liveness response; must not expose secrets or infrastructure topology.
+      security: []
+      responses:
+        '200':
+          description: Service process is alive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthEnvelope'
+              example:
+                data: { status: alive }
+                meta: { request_id: "00000000-0000-4000-8000-000000000001", api_version: v1 }
+  /capabilities:
+    get:
+      tags: [System]
+      summary: Discover API capabilities
+      security: []
+      responses:
+        '200':
+          description: Supported API features and release capabilities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesEnvelope'
+  /me:
+    get:
+      tags: [Driver]
+      summary: Get authenticated user summary
+      responses:
+        '200':
+          description: Current authenticated subject.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /me/profile:
+    patch:
+      tags: [Driver]
+      summary: Update own driver profile
+      description: The server derives the subject; client-supplied owner identifiers are not accepted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverProfilePatch'
+      responses:
+        '200':
+          description: Updated own profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfileEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /vehicle-profiles:
+    get:
+      tags: [Vehicles]
+      summary: List own vehicle profiles
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Own vehicle profiles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileCollectionEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Vehicles]
+      summary: Create a personal vehicle profile and initial version
+      description: Supplied values are not automatically verified. Illustrative example dimensions are not defaults.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleProfileCreate'
+      responses:
+        '201':
+          description: Profile created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /vehicle-profiles/{profileId}:
+    parameters:
+      - $ref: '#/components/parameters/ProfileId'
+    get:
+      tags: [Vehicles]
+      summary: Get own vehicle profile and current version
+      responses:
+        '200':
+          description: Vehicle profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Vehicles]
+      summary: Update vehicle profile metadata
+      description: Technical version attributes are immutable and must be changed by creating a new version.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleProfilePatch'
+      responses:
+        '200':
+          description: Metadata updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /vehicle-profiles/{profileId}/versions:
+    parameters:
+      - $ref: '#/components/parameters/ProfileId'
+    get:
+      tags: [Vehicles]
+      summary: List immutable versions of own profile
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Version history.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleVersionCollectionEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Vehicles]
+      summary: Create a new immutable technical version
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleVersionCreate'
+      responses:
+        '201':
+          description: New version created; earlier versions and journey snapshots remain unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleVersionEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /vehicle-profiles/{profileId}/versions/{versionId}:
+    parameters:
+      - $ref: '#/components/parameters/ProfileId'
+      - $ref: '#/components/parameters/VersionId'
+    get:
+      tags: [Vehicles]
+      summary: Get a specific immutable vehicle version
+      responses:
+        '200':
+          description: Immutable version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleVersionEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /vehicle-profiles/{profileId}/activate-version:
+    post:
+      tags: [Vehicles]
+      summary: Set current version after ownership and version validation
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version_id]
+              properties:
+                version_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Current version changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /vehicle-profiles/{profileId}/archive:
+    post:
+      tags: [Vehicles]
+      summary: Archive own vehicle profile without erasing historical references
+      parameters:
+        - $ref: '#/components/parameters/ProfileId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Profile archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleProfileEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /locations:
+    get:
+      tags: [Locations]
+      summary: Search published locations
+      description: Only public-safe published fields are returned. Search radius and spatial filters require validated backend support.
+      security: []
+      parameters:
+        - name: country_code
+          in: query
+          schema: { type: string, pattern: '^[A-Z]{2}$' }
+        - name: locality
+          in: query
+          schema: { type: string, maxLength: 120 }
+        - name: capability
+          in: query
+          schema:
+            $ref: '#/components/schemas/LocationCapability'
+        - name: latitude
+          in: query
+          schema: { type: number, minimum: -90, maximum: 90 }
+        - name: longitude
+          in: query
+          schema: { type: number, minimum: -180, maximum: 180 }
+        - name: radius_m
+          in: query
+          schema: { type: integer, minimum: 1 }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Search results, including explicit completeness state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationCollectionEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+  /locations/{locationId}:
+    parameters:
+      - $ref: '#/components/parameters/LocationId'
+    get:
+      tags: [Locations]
+      summary: Get a published location
+      security: []
+      responses:
+        '200':
+          description: Public location details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /locations/{locationId}/services:
+    parameters:
+      - $ref: '#/components/parameters/LocationId'
+    get:
+      tags: [Locations]
+      summary: List public services and capabilities at a location
+      security: []
+      responses:
+        '200':
+          description: Published services.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCollectionEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /locations/{locationId}/evidence-summary:
+    parameters:
+      - $ref: '#/components/parameters/LocationId'
+    get:
+      tags: [Locations]
+      summary: Get public-safe evidence and freshness summary
+      security: []
+      responses:
+        '200':
+          description: Evidence summary; absence of evidence is not proof of safety.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceSummaryEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /locations/{locationId}/observations:
+    parameters:
+      - $ref: '#/components/parameters/LocationId'
+    get:
+      tags: [Community]
+      summary: List approved public observations
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Approved public projection only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationCollectionEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Community]
+      summary: Submit an observation
+      description: New contributions remain untrusted/pending until policy-approved.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ObservationCreate'
+      responses:
+        '201':
+          description: Observation accepted for moderation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservationEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /locations/{locationId}/reviews:
+    parameters:
+      - $ref: '#/components/parameters/LocationId'
+    get:
+      tags: [Community]
+      summary: List published reviews
+      description: Conditional feature; include in a release only if reviews are approved for MVP.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Published reviews.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCollectionEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Community]
+      summary: Submit a review
+      description: Conditional feature; include only if reviews are approved for MVP. Submission is not automatically published.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: Review accepted for moderation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /observations/{observationId}/report:
+    post:
+      tags: [Community]
+      summary: Report an observation for moderation
+      parameters:
+        - name: observationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason_code]
+              properties:
+                reason_code: { type: string, minLength: 2, maxLength: 64 }
+                explanation: { type: string, maxLength: 1000 }
+      responses:
+        '202':
+          description: Report accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /journeys:
+    get:
+      tags: [Journeys]
+      summary: List own journey history
+      description: Conditional MVP scope; journey history does not imply continuous GPS tracking.
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Own journeys.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyCollectionEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Journeys]
+      summary: Create a journey with an exact vehicle version snapshot
+      description: Conditional MVP scope. Route planning/evaluation and continuous tracking are not defined by this operation.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JourneyCreate'
+      responses:
+        '201':
+          description: Journey created with immutable vehicle snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /journeys/{journeyId}:
+    parameters:
+      - name: journeyId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Journeys]
+      summary: Get own journey
+      responses:
+        '200':
+          description: Journey and historical vehicle snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /journeys/{journeyId}/complete:
+    post:
+      tags: [Journeys]
+      summary: Complete own journey
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Journey completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /journeys/{journeyId}/cancel:
+    post:
+      tags: [Journeys]
+      summary: Cancel own journey
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Journey cancelled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyEnvelope'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Server-validated identity token. Authorization is never derived from client-supplied role/owner fields.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      description: Bounded page size; proposed default 20 and maximum 100.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque server-issued continuation cursor.
+      schema: { type: string, minLength: 1, maxLength: 2048 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Required for designated state-changing POST operations; same key and request returns original outcome.
+      schema: { type: string, minLength: 8, maxLength: 255 }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      description: Optional version/ETag precondition where concurrency protection is supported.
+      schema: { type: string, maxLength: 255 }
+    ProfileId:
+      name: profileId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    VersionId:
+      name: versionId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    LocationId:
+      name: locationId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    BadRequest:
+      description: Malformed request or invalid syntax.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Unauthorized:
+      description: Missing, invalid or expired credentials.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    NotFound:
+      description: Resource absent or intentionally concealed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Conflict:
+      description: State, version or idempotency conflict.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    ValidationFailed:
+      description: Syntactically valid but semantically invalid request.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    RateLimited:
+      description: Rate/quota limit reached.
+      headers:
+        Retry-After:
+          schema: { type: integer, minimum: 0 }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    UpstreamError:
+      description: Provider/upstream failure; never silently converted to a complete empty result.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+  schemas:
+    Meta:
+      type: object
+      required: [request_id, api_version]
+      properties:
+        request_id: { type: string, format: uuid }
+        api_version: { type: string, const: v1 }
+        page:
+          $ref: '#/components/schemas/Page'
+        result_state:
+          $ref: '#/components/schemas/ResultState'
+        warnings:
+          type: array
+          items: { $ref: '#/components/schemas/Warning' }
+    Page:
+      type: object
+      required: [limit, next_cursor, has_more]
+      properties:
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        next_cursor: { type: [string, 'null'] }
+        has_more: { type: boolean }
+    Warning:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        source_id: { type: [string, 'null'] }
+    ResultState:
+      type: string
+      enum: [complete, partial, degraded, unavailable]
+    SuccessEnvelope:
+      type: object
+      required: [data, meta]
+      properties:
+        data: {}
+        meta: { $ref: '#/components/schemas/Meta' }
+    HealthEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, const: alive }
+    CapabilitiesEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                api_version: { type: string, const: v1 }
+                features:
+                  type: array
+                  items: { type: string }
+                conditional_features:
+                  type: array
+                  items: { type: string }
+    MeEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string, format: uuid }
+                display_name: { type: [string, 'null'], maxLength: 120 }
+                profile_state: { type: string }
+    DriverProfilePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        display_name: { type: [string, 'null'], maxLength: 120 }
+        preferences:
+          type: object
+          additionalProperties: true
+          maxProperties: 50
+    DriverProfileEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                display_name: { type: [string, 'null'] }
+                preferences: { type: object }
+    VehicleConfiguration:
+      type: string
+      enum: [car, van, rigid_truck, tractor_semitrailer, truck_trailer, multi_trailer, special_oversized, other, unknown]
+    AttributeState:
+      type: string
+      enum: [known, unknown, unconfirmed, not_applicable]
+    ADRStatus:
+      type: string
+      enum: [yes, no, unknown, not_applicable]
+    VehicleTechnicalVersion:
+      type: object
+      required: [configuration_code, completeness_state]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        version_number: { type: integer, minimum: 1, readOnly: true }
+        configuration_code: { $ref: '#/components/schemas/VehicleConfiguration' }
+        overall_length_m: { type: [number, 'null'], exclusiveMinimum: 0 }
+        overall_width_m: { type: [number, 'null'], exclusiveMinimum: 0 }
+        overall_height_m: { type: [number, 'null'], exclusiveMinimum: 0 }
+        gross_mass_kg: { type: [integer, 'null'], minimum: 0 }
+        axle_count: { type: [integer, 'null'], minimum: 1 }
+        adr_status: { $ref: '#/components/schemas/ADRStatus' }
+        completeness_state:
+          type: string
+          enum: [complete, needs_review, incomplete, unknown]
+        attribute_states:
+          type: object
+          description: Explicit state for safety-critical attributes; omitted values are not assumed safe.
+          additionalProperties:
+            $ref: '#/components/schemas/AttributeState'
+        axle_configuration:
+          type: [object, 'null']
+          additionalProperties: true
+        trailer_components:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        adr_details:
+          type: [object, 'null']
+          additionalProperties: true
+        permit_context:
+          type: [object, 'null']
+          additionalProperties: true
+    VehicleVersionCreate:
+      allOf:
+        - $ref: '#/components/schemas/VehicleTechnicalVersion'
+      description: Client must omit server-generated id and version_number when creating a version.
+    VehicleProfileCreate:
+      type: object
+      additionalProperties: false
+      required: [name, initial_version]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        initial_version:
+          $ref: '#/components/schemas/VehicleVersionCreate'
+    VehicleProfilePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+    VehicleProfile:
+      type: object
+      required: [id, name, status, current_version]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        status: { type: string, enum: [draft, active, archived] }
+        current_version:
+          $ref: '#/components/schemas/VehicleTechnicalVersion'
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    VehicleVersionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/VehicleTechnicalVersion' }
+    VehicleProfileEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/VehicleProfile' }
+    VehicleProfileCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/VehicleProfile' }
+    VehicleVersionCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/VehicleTechnicalVersion' }
+    LocationCapability:
+      type: string
+      enum: [parking, food, fuel, shower, toilet, accommodation, workshop, other]
+    Location:
+      type: object
+      required: [id, name, country_code, capabilities, location_state]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, maxLength: 200 }
+        country_code: { type: string, pattern: '^[A-Z]{2}$' }
+        locality: { type: [string, 'null'], maxLength: 120 }
+        capabilities:
+          type: array
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/LocationCapability' }
+        location_state: { type: string, enum: [published] }
+        evidence_summary:
+          $ref: '#/components/schemas/EvidenceSummary'
+        truck_access:
+          $ref: '#/components/schemas/AccessAssessment'
+    Service:
+      type: object
+      required: [id, capability, state]
+      properties:
+        id: { type: string, format: uuid }
+        capability: { $ref: '#/components/schemas/LocationCapability' }
+        name: { type: [string, 'null'], maxLength: 120 }
+        state: { type: string, enum: [available, temporarily_unavailable, unknown] }
+    EvidenceSummary:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [confirmed, likely, reported, unverified, conflicting, expired_needs_review, unknown]
+        last_observed_at: { type: [string, 'null'], format: date-time }
+        freshness:
+          type: string
+          enum: [fresh, aging, needs_review, expired, unknown]
+        confidence:
+          type: [number, 'null']
+          minimum: 0
+          maximum: 1
+    AccessAssessment:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [suitable, suitable_with_conditions, unsuitable_known, unknown, temporarily_unavailable, insufficient_data]
+        reason_code: { type: [string, 'null'] }
+        evaluated_vehicle_version_id: { type: [string, 'null'], format: uuid }
+    LocationEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Location' }
+    LocationCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Location' }
+    ServiceCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Service' }
+    EvidenceSummaryEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/EvidenceSummary' }
+    ObservationCreate:
+      type: object
+      additionalProperties: false
+      required: [observation_kind, statement, observed_at]
+      properties:
+        observation_kind: { type: string, minLength: 2, maxLength: 64 }
+        statement: { type: string, minLength: 1, maxLength: 4000 }
+        observed_at: { type: string, format: date-time }
+        attributes:
+          type: object
+          additionalProperties: true
+          maxProperties: 50
+    Observation:
+      type: object
+      required: [id, observation_kind, statement, observed_at, moderation_state]
+      properties:
+        id: { type: string, format: uuid }
+        observation_kind: { type: string }
+        statement: { type: string }
+        observed_at: { type: string, format: date-time }
+        moderation_state: { type: string, enum: [pending, approved, rejected, withdrawn] }
+    ObservationEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Observation' }
+    ObservationCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Observation' }
+    ReviewCreate:
+      type: object
+      additionalProperties: false
+      required: [rating, text]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, minLength: 1, maxLength: 4000 }
+    Review:
+      type: object
+      required: [id, rating, text, publication_state]
+      properties:
+        id: { type: string, format: uuid }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string }
+        publication_state: { type: string, enum: [pending, published, rejected, withdrawn] }
+    ReviewEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Review' }
+    ReviewCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Review' }
+    JourneyCreate:
+      type: object
+      additionalProperties: false
+      required: [vehicle_profile_id, vehicle_version_id, origin, destination]
+      properties:
+        vehicle_profile_id: { type: string, format: uuid }
+        vehicle_version_id: { type: string, format: uuid }
+        origin: { $ref: '#/components/schemas/JourneyEndpoint' }
+        destination: { $ref: '#/components/schemas/JourneyEndpoint' }
+        planned_departure_at: { type: [string, 'null'], format: date-time }
+    JourneyEndpoint:
+      type: object
+      additionalProperties: false
+      required: [label]
+      properties:
+        label: { type: string, minLength: 1, maxLength: 200 }
+        latitude: { type: [number, 'null'], minimum: -90, maximum: 90 }
+        longitude: { type: [number, 'null'], minimum: -180, maximum: 180 }
+        location_id: { type: [string, 'null'], format: uuid }
+    Journey:
+      type: object
+      required: [id, status, vehicle_profile_id, vehicle_version_id, vehicle_snapshot]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [planned, active, completed, cancelled] }
+        vehicle_profile_id: { type: string, format: uuid }
+        vehicle_version_id: { type: string, format: uuid }
+        vehicle_snapshot:
+          $ref: '#/components/schemas/VehicleTechnicalVersion'
+        created_at: { type: string, format: date-time }
+        completed_at: { type: [string, 'null'], format: date-time }
+    JourneyEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Journey' }
+    JourneyCollectionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Journey' }
+    AcceptedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                accepted: { type: boolean, const: true }
+    ErrorEnvelope:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable]
+          properties:
+            code:
+              type: string
+              enum:
+                - BAD_REQUEST
+                - UNAUTHENTICATED
+                - FORBIDDEN
+                - NOT_FOUND
+                - CONFLICT
+                - EXPIRED
+                - PAYLOAD_TOO_LARGE
+                - UNSUPPORTED_MEDIA_TYPE
+                - VALIDATION_FAILED
+                - RATE_LIMITED
+                - INTERNAL_ERROR
+                - UPSTREAM_ERROR
+                - SERVICE_UNAVAILABLE
+                - UPSTREAM_TIMEOUT
+                - RESOURCE_ARCHIVED
+                - RESOURCE_NOT_PUBLISHED
+                - STALE_VERSION
+                - IDEMPOTENCY_KEY_REUSED
+                - VEHICLE_PROFILE_INCOMPLETE
+                - VEHICLE_ATTRIBUTE_UNKNOWN
+                - PROVIDER_CAPABILITY_UNSUPPORTED
+                - PROVIDER_COVERAGE_INSUFFICIENT
+                - RESULTS_PARTIAL
+                - EVIDENCE_STALE
+                - EVIDENCE_CONFLICTING
+                - ACCESS_SUITABILITY_UNKNOWN
+                - RESTRICTION_EVALUATION_INSUFFICIENT_DATA
+            message: { type: string, maxLength: 500 }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  reason: { type: string }
+            retryable: { type: boolean }
+          additionalProperties: false
+        meta:
+          type: object
+          required: [request_id, api_version]
+          properties:
+            request_id: { type: string, format: uuid }
+            api_version: { type: string, const: v1 }
+          additionalProperties: false
