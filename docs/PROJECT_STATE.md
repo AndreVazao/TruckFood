@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 2.9.0  
+**Version:** 3.0.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-08  
+**Last Update:** 2026-11-11  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -73,6 +73,7 @@ The discovery baseline now includes:
 - `docs/adr/ADR-0018-database-logical-physical-model.md`
 - `docs/specifications/DATABASE_SCHEMA_V1.md`
 - `docs/specifications/API_CONTRACT_V1.md`
+- `docs/specifications/openapi-v1.yaml`
 
 ## 4. Repository Foundation
 
@@ -210,6 +211,12 @@ The specification defines metric canonical units, UTC timestamps, explicit unkno
 
 The proposed MVP surface covers current-user profile, personal vehicle profiles and immutable versions, published location/service discovery, community observations and optional reviews/journey history. Fleet, subscription and live-location namespaces are explicitly deferred. Provider failures, partial results, stale/conflicting evidence and unknown vehicle/access attributes remain distinguishable. This is a contract specification only: no routes, controllers, OpenAPI file, middleware, database queries, provider adapters or deployed service have been implemented.
 
+### 5.23 OpenAPI 3.1 contract specification
+
+`docs/specifications/openapi-v1.yaml` translates the proposed API contract into an OpenAPI 3.1 document. It describes the initial system, driver, personal vehicle-profile/version, published location/service/evidence-summary, community observation/report and conditional review/journey operations; bearer authentication; shared success/error envelopes; pagination, idempotency and concurrency headers; and reusable domain schemas.
+
+The specification intentionally excludes future organization/fleet routes. Review and journey operations are marked conditional and must be enabled only if approved for the release. The illustrative server URL uses the reserved `.invalid` domain and is not a deployment endpoint. The YAML has been committed and re-fetched from GitHub to verify its stored contents, but has not yet been run through an OpenAPI parser/linter or contract-test suite. It remains a documentation artifact: no API implementation, route, middleware, database or deployment exists.
+
 ## 6. Discovery Research Findings
 
 Current web research confirms:
@@ -321,7 +328,7 @@ The project will use:
 
 The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction, provider adapter/capability contracts, cross-platform/vehicle-selection requirements, future fleet organization/membership/group/asset/assignment domain and proposed authorization permission matrix are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, ADR-0013 defines TruckFood-owned provider contracts and capability declarations, and ADR-0014 defines cross-platform experience and explicit multi-profile vehicle selection. Physical spatial schema, concrete provider selection, exact client support matrix, fleet privacy/legal policy, tenancy implementation and live integrations remain open before implementation.
 
-The next work is architecture/API/security and deeper commercial/licensing validation, not application coding.
+The next work is contract validation and architecture/API/security plus deeper commercial/licensing validation, not application coding.
 
 ## 12. Immediate Next Steps
 
@@ -355,11 +362,12 @@ The next work is architecture/API/security and deeper commercial/licensing valid
 28. Review privacy notice, retention, export/deletion, secret rotation and incident-response requirements.
 29. Review and approve the first-release table scope in `docs/specifications/DATABASE_SCHEMA_V1.md`, especially journeys, reviews and full vehicle-combination support.
 30. Review and freeze the API endpoint scope, error catalog, auth requirements and domain enums in `docs/specifications/API_CONTRACT_V1.md`.
-31. Generate and validate OpenAPI 3.1 and reusable request/response schemas from the approved API contract.
-32. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.
-33. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.
-34. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.
-35. Only then freeze the first database migration and begin implementation.
+31. Validate `docs/specifications/openapi-v1.yaml` with an OpenAPI 3.1 parser/linter; reconcile any schema or semantic differences against `API_CONTRACT_V1.md`.
+32. Add deterministic OpenAPI validation and API contract tests to the repository's future CI plan, without activating paid services.
+33. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.
+34. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.
+35. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.
+36. Only then freeze the first database migration and begin implementation.
 
 ## 13. North Star Direction
 
