@@ -1,0 +1,851 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truckfood.invalid/schemas/provider-contract-v1.schema.json",
+  "title": "TruckFood Provider Contract v1",
+  "description": "Language-neutral validation schema for provider capability declarations and normalized adapter operation results. The .invalid identifier is illustrative and is not a production endpoint.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/capabilityDeclaration"
+    },
+    {
+      "$ref": "#/$defs/operationResult"
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "coordinate": {
+      "type": "number"
+    },
+    "vehicleParameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vehicle_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "car",
+              "van",
+              "rigid_truck",
+              "tractor_semitrailer",
+              "truck_trailer",
+              "multi_trailer",
+              "special_oversized",
+              "other"
+            ]
+          }
+        },
+        "height_m": {
+          "type": "boolean"
+        },
+        "width_m": {
+          "type": "boolean"
+        },
+        "length_m": {
+          "type": "boolean"
+        },
+        "gross_mass_kg": {
+          "type": "boolean"
+        },
+        "axle_load_kg": {
+          "type": "boolean"
+        },
+        "axle_count": {
+          "type": "boolean"
+        },
+        "trailer_configuration": {
+          "type": "boolean"
+        },
+        "adr_hazmat": {
+          "type": "boolean"
+        },
+        "conditional_access": {
+          "type": "boolean"
+        },
+        "unknown_parameter_behavior": {
+          "enum": [
+            "reject",
+            "explicitly_unsupported",
+            "provider_defined"
+          ]
+        }
+      }
+    },
+    "geographicCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_state"
+      ],
+      "properties": {
+        "coverage_state": {
+          "enum": [
+            "global",
+            "country_list",
+            "regional",
+            "limited",
+            "unknown"
+          ]
+        },
+        "country_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "known_gaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "coverage_notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "coverage_last_reviewed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "dataRights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display",
+        "transient_processing",
+        "short_lived_cache",
+        "persistent_storage",
+        "transformation",
+        "analytics_derived_data",
+        "redistribution",
+        "offline_packages",
+        "rights_state"
+      ],
+      "properties": {
+        "display": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "transient_processing": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "short_lived_cache": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "persistent_storage": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "transformation": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "analytics_derived_data": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "redistribution": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "offline_packages": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unknown"
+          ]
+        },
+        "rights_state": {
+          "enum": [
+            "reviewed",
+            "review_required",
+            "blocked",
+            "expired"
+          ]
+        },
+        "license_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
+        "terms_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
+        "reviewed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review_due_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attribution_text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "attribution_placement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        }
+      }
+    },
+    "operationCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "support_state"
+      ],
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "support_state": {
+          "enum": [
+            "supported",
+            "limited",
+            "unsupported",
+            "unknown"
+          ]
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "max_radius_m": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "max_results": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "max_waypoints": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "vehicle_parameters": {
+          "$ref": "#/$defs/vehicleParameters"
+        },
+        "time_dependence": {
+          "enum": [
+            "supported",
+            "partial",
+            "unsupported",
+            "unknown"
+          ]
+        },
+        "output_features": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "costModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pricing_state"
+      ],
+      "properties": {
+        "pricing_state": {
+          "enum": [
+            "free",
+            "free_tier",
+            "usage_based",
+            "subscription",
+            "contract",
+            "unknown"
+          ]
+        },
+        "pricing_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        },
+        "metering_dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "budget_limit_configured": {
+          "type": "boolean"
+        },
+        "cost_notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "freshnessModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "update_characteristics"
+      ],
+      "properties": {
+        "update_characteristics": {
+          "enum": [
+            "realtime",
+            "frequent",
+            "periodic",
+            "irregular",
+            "static",
+            "unknown"
+          ]
+        },
+        "source_timestamp_available": {
+          "type": "boolean"
+        },
+        "recommended_refresh_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "freshness_notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "capabilityDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "declaration_type",
+        "provider_id",
+        "adapter_id",
+        "provider_product_version",
+        "adapter_version",
+        "capability_family",
+        "operations",
+        "geography",
+        "freshness",
+        "data_rights",
+        "cost",
+        "attribution",
+        "declared_at"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "declaration_type": {
+          "const": "provider_capability"
+        },
+        "provider_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "adapter_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "provider_product_version": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "adapter_version": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "capability_family": {
+          "enum": [
+            "map_display",
+            "geocoding",
+            "routing",
+            "restriction_data",
+            "poi_business",
+            "truckfood_owned_data"
+          ]
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/operationCapability"
+          }
+        },
+        "geography": {
+          "$ref": "#/$defs/geographicCoverage"
+        },
+        "freshness": {
+          "$ref": "#/$defs/freshnessModel"
+        },
+        "vehicle_parameters": {
+          "$ref": "#/$defs/vehicleParameters"
+        },
+        "data_rights": {
+          "$ref": "#/$defs/dataRights"
+        },
+        "cost": {
+          "$ref": "#/$defs/costModel"
+        },
+        "attribution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required"
+          ],
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 2000
+            },
+            "placement": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 500
+            }
+          }
+        },
+        "reliability": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "timeout_seconds": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "retryable_error_categories": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          }
+        },
+        "declared_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "reviewed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "adapter_id"
+      ],
+      "properties": {
+        "provider_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "adapter_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "provider_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
+        "source_timestamp": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retrieved_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_record_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "license_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "coverage_state": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "region_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "retryGuidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "retryable": {
+          "type": "boolean"
+        },
+        "retry_after_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        }
+      }
+    },
+    "operationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "declaration_type",
+        "operation",
+        "provider_id",
+        "adapter_id",
+        "outcome",
+        "provenance",
+        "data_rights",
+        "request_id"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "declaration_type": {
+          "const": "provider_operation_result"
+        },
+        "operation": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "provider_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "adapter_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "partial",
+            "empty",
+            "unsupported",
+            "unavailable",
+            "rate_limited",
+            "invalid_response"
+          ]
+        },
+        "data": {
+          "type": [
+            "object",
+            "array",
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        },
+        "coverage": {
+          "$ref": "#/$defs/coverage"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "data_rights": {
+          "$ref": "#/$defs/dataRights"
+        },
+        "retry_guidance": {
+          "$ref": "#/$defs/retryGuidance"
+        },
+        "request_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "duration_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "cost_units": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "error": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/providerError"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "success",
+                  "partial"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "data"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "unsupported",
+                  "unavailable",
+                  "rate_limited",
+                  "invalid_response"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "error"
+            ]
+          }
+        }
+      ]
+    },
+    "providerError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "invalid_request",
+            "authentication_configuration",
+            "permission_licensing",
+            "quota_rate_limit",
+            "timeout",
+            "network_unavailable",
+            "provider_server_error",
+            "invalid_provider_response",
+            "unsupported_operation"
+          ]
+        },
+        "code": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "provider_status_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 100,
+          "maximum": 599
+        }
+      }
+    }
+  }
+}
