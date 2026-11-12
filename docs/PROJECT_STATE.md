@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-12  
 **Repository:** `AndreVazao/TruckFood`  
@@ -78,7 +78,15 @@ The discovery baseline now includes:
 - `docs/specifications/provider-contract-v1.schema.json`
 - `docs/specifications/examples/provider-capability.fixture.json`
 - `docs/specifications/examples/provider-result.fixture.json`
+- `docs/specifications/PROVIDER_REGISTRY_V1.md`
+- `docs/specifications/provider-registry-v1.schema.json`
+- `docs/specifications/examples/registry.fixture.json`
+- `docs/adr/ADR-0019-provider-registry-deterministic-selection.md`
 - `.github/workflows/openapi-contract-validation.yml`
+
+### 5.19 Provider registry and deterministic selection
+
+ADR-0019 and the Provider Registry v1 specification define a registry manifest that references a separately versioned capability declaration by immutable reference and SHA-256 digest. Registry metadata covers adapter identity/version, environment, lifecycle, rights-review governance, operational health and configuration key names only; capability details remain authoritative in the declaration. Selection is eligibility-first and deterministic, with fail-closed handling for unknown/expired rights and unknown safety-critical vehicle support. No silent downgrade from truck routing to car routing is permitted. A synthetic fixture, JSON Schema and independent CI validation step have been added. This is documentation and structural validation only: there is no runtime registry, selector, health probe, live adapter or approved production provider.
 
 ## 4. Repository Foundation
 
