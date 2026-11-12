@@ -1,0 +1,95 @@
+{
+  "contract_version": "1.0.0",
+  "declaration_type": "provider_capability",
+  "provider_id": "fixture.openstreetmap",
+  "adapter_id": "fixture.osm.poi",
+  "provider_product_version": "fixture-2026-01",
+  "adapter_version": "1.0.0",
+  "capability_family": "poi_business",
+  "operations": [
+    {
+      "operation": "search_poi",
+      "support_state": "supported",
+      "constraints": [
+        "Fixture only; not a real provider integration."
+      ],
+      "max_radius_m": 25000,
+      "max_results": 100,
+      "time_dependence": "unknown",
+      "output_features": [
+        "point",
+        "category",
+        "external_reference"
+      ]
+    }
+  ],
+  "geography": {
+    "coverage_state": "country_list",
+    "country_codes": [
+      "PT"
+    ],
+    "regions": [],
+    "known_gaps": [
+      "Fixture does not establish actual geographic coverage."
+    ],
+    "coverage_notes": "Deterministic validation fixture only.",
+    "coverage_last_reviewed_at": null
+  },
+  "freshness": {
+    "update_characteristics": "unknown",
+    "source_timestamp_available": false,
+    "recommended_refresh_seconds": null,
+    "freshness_notes": "Fixture only."
+  },
+  "vehicle_parameters": {
+    "vehicle_types": [],
+    "height_m": false,
+    "width_m": false,
+    "length_m": false,
+    "gross_mass_kg": false,
+    "axle_load_kg": false,
+    "axle_count": false,
+    "trailer_configuration": false,
+    "adr_hazmat": false,
+    "conditional_access": false,
+    "unknown_parameter_behavior": "explicitly_unsupported"
+  },
+  "data_rights": {
+    "display": "unknown",
+    "transient_processing": "unknown",
+    "short_lived_cache": "unknown",
+    "persistent_storage": "unknown",
+    "transformation": "unknown",
+    "analytics_derived_data": "unknown",
+    "redistribution": "unknown",
+    "offline_packages": "unknown",
+    "rights_state": "review_required",
+    "license_reference": null,
+    "terms_reference": null,
+    "reviewed_at": null,
+    "review_due_at": null,
+    "attribution_text": null,
+    "attribution_placement": null
+  },
+  "cost": {
+    "pricing_state": "unknown",
+    "pricing_unit": null,
+    "metering_dimensions": [],
+    "budget_limit_configured": false,
+    "cost_notes": "Fixture only."
+  },
+  "attribution": {
+    "required": false,
+    "text": null,
+    "placement": null
+  },
+  "reliability": {
+    "timeout_seconds": 10,
+    "retryable_error_categories": [
+      "timeout"
+    ]
+  },
+  "declared_at": "2026-11-12T00:00:00Z",
+  "reviewed_at": null,
+  "notes": "Non-production fixture used only to validate the JSON Schema."
+}
