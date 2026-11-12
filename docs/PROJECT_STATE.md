@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 3.0.0  
+**Version:** 3.1.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-11  
+**Last Update:** 2026-11-12  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -74,6 +74,11 @@ The discovery baseline now includes:
 - `docs/specifications/DATABASE_SCHEMA_V1.md`
 - `docs/specifications/API_CONTRACT_V1.md`
 - `docs/specifications/openapi-v1.yaml`
+- `docs/specifications/PROVIDER_CONTRACTS_V1.md`
+- `docs/specifications/provider-contract-v1.schema.json`
+- `docs/specifications/examples/provider-capability.fixture.json`
+- `docs/specifications/examples/provider-result.fixture.json`
+- `.github/workflows/openapi-contract-validation.yml`
 
 ## 4. Repository Foundation
 
@@ -217,6 +222,14 @@ The proposed MVP surface covers current-user profile, personal vehicle profiles 
 
 The specification intentionally excludes future organization/fleet routes. Review and journey operations are marked conditional and must be enabled only if approved for the release. The illustrative server URL uses the reserved `.invalid` domain and is not a deployment endpoint. The YAML has been committed and re-fetched from GitHub to verify its stored contents, but has not yet been run through an OpenAPI parser/linter or contract-test suite. It remains a documentation artifact: no API implementation, route, middleware, database or deployment exists.
 
+### 5.24 Provider contract v1 and automated validation gate
+
+`docs/specifications/PROVIDER_CONTRACTS_V1.md` defines two TruckFood-owned provider records: versioned capability declarations and normalized operation results. The machine-readable `provider-contract-v1.schema.json` (JSON Schema Draft 2020-12) captures capability families, operation support, geographic coverage, vehicle-parameter support, freshness, separate data-use rights, attribution, cost/reliability metadata, provenance, normalized outcomes and stable provider error categories.
+
+Two deterministic fixture records are included under `docs/specifications/examples/`. They are explicitly synthetic and do not claim real provider coverage, licensing approval or live integration. The contract preserves the distinction between empty, partial, unsupported, unavailable, rate-limited and invalid responses. Unknown capability or data rights must fail closed for safety-sensitive and persistence/offline decisions.
+
+`.github/workflows/openapi-contract-validation.yml` adds a GitHub Actions validation gate: Redocly CLI (pinned) lints the OpenAPI 3.1 document, and Python 3.12 with a pinned JSON Schema validator checks the provider schema and all fixture files. The workflow is configured for relevant pushes, pull requests and manual dispatch. It has been committed but no successful run has yet been confirmed in this project state. It validates specification artifacts only; it does not call providers or implement application adapters.
+
 ## 6. Discovery Research Findings
 
 Current web research confirms:
@@ -328,16 +341,16 @@ The project will use:
 
 The product, provider/data, vehicle-model, Location/POI, persistence, provenance/trust, restriction/time, proposed system architecture, API boundaries, offline/vehicle-mode direction, security/privacy direction, preferred geospatial storage/query direction, provider adapter/capability contracts, cross-platform/vehicle-selection requirements, future fleet organization/membership/group/asset/assignment domain and proposed authorization permission matrix are documented. ADR-0008 proposes a modular-monolith direction, ADR-0009 records API contract principles, ADR-0010 records staged offline package and vehicle-mode requirements, ADR-0011 proposes least-privilege authorization and RLS requirements, ADR-0012 proposes PostgreSQL/PostGIS subject to hosting/licensing/query validation, ADR-0013 defines TruckFood-owned provider contracts and capability declarations, and ADR-0014 defines cross-platform experience and explicit multi-profile vehicle selection. Physical spatial schema, concrete provider selection, exact client support matrix, fleet privacy/legal policy, tenancy implementation and live integrations remain open before implementation.
 
-The next work is contract validation and architecture/API/security plus deeper commercial/licensing validation, not application coding.
+The next work is to obtain a successful automated specification-validation run, resolve any lint/schema findings, then continue architecture/API/security and deeper commercial/licensing validation; provider integrations and application coding remain gated.
 
 ## 12. Immediate Next Steps
 
-1. Define versioned language-neutral provider contract schemas, outcome states and stable error categories.
+1. Obtain and review a successful run of `.github/workflows/openapi-contract-validation.yml`; fix all OpenAPI lint and provider-fixture/schema findings.
 2. Review ADR-0016 and ADR-0017 together; approve the organization domain, role/permission matrix, scope rules and open questions before physical schema design.
 3. Specify privacy-reviewed location-sharing session lifecycle, driver notice, permissions, off-duty cessation, retention and audit requirements.
 4. Define fleet dashboard API scopes and source/freshness semantics for driver-phone GPS versus vehicle tracker telemetry.
 5. Validate Portuguese/EU employment privacy obligations, lawful basis, controller/processor roles and any required impact assessment before any fleet pilot.
-6. Define the provider registry/configuration and capability declaration format.
+6. Define the provider registry/configuration lifecycle, review/expiry policy and capability declaration storage format based on `PROVIDER_CONTRACTS_V1.md`.
 7. Specify MVP API request/response schemas, authorization matrix and error catalog.
 8. Define client technology options and a realistic Android/OEM/screen/performance and PC/browser support matrix using target-user/device evidence.
 9. Prototype responsive UX and vehicle-profile selection flows for phone, tablet and PC.
@@ -363,7 +376,7 @@ The next work is contract validation and architecture/API/security plus deeper c
 29. Review and approve the first-release table scope in `docs/specifications/DATABASE_SCHEMA_V1.md`, especially journeys, reviews and full vehicle-combination support.
 30. Review and freeze the API endpoint scope, error catalog, auth requirements and domain enums in `docs/specifications/API_CONTRACT_V1.md`.
 31. Validate `docs/specifications/openapi-v1.yaml` with an OpenAPI 3.1 parser/linter; reconcile any schema or semantic differences against `API_CONTRACT_V1.md`.
-32. Add deterministic OpenAPI validation and API contract tests to the repository's future CI plan, without activating paid services.
+32. Expand the contract CI gate with deterministic OpenAPI/API semantic tests after the initial linter and JSON Schema validation pass, without activating paid services.
 33. Validate identity UUID mapping, PostgreSQL/PostGIS hosting, measurement semantics, geometry/SRID and source licensing.
 34. Produce reviewed SQL migrations with rollback/recovery notes only after those gates pass.
 35. Run clean-database, integrity, owner-isolation, anonymous-public-read and privilege-escalation tests before non-production deployment.
