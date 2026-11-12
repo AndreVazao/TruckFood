@@ -749,14 +749,7 @@
           }
         },
         "error": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/providerError"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/providerError"
         }
       },
       "allOf": [
@@ -799,7 +792,12 @@
           "then": {
             "required": [
               "error"
-            ]
+            ],
+            "properties": {
+              "error": {
+                "$ref": "#/$defs/providerError"
+              }
+            }
           }
         }
       ]
