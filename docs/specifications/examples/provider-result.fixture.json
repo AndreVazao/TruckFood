@@ -1,0 +1,46 @@
+{
+  "contract_version": "1.0.0",
+  "declaration_type": "provider_operation_result",
+  "operation": "search_poi",
+  "provider_id": "fixture.openstreetmap",
+  "adapter_id": "fixture.osm.poi",
+  "outcome": "success",
+  "data": [],
+  "provenance": [],
+  "coverage": {
+    "coverage_state": "partial",
+    "region_code": "PT",
+    "limitations": [
+      "Fixture only; not evidence of actual coverage."
+    ]
+  },
+  "limitations": [
+    "No live provider was called."
+  ],
+  "data_rights": {
+    "display": "unknown",
+    "transient_processing": "unknown",
+    "short_lived_cache": "unknown",
+    "persistent_storage": "unknown",
+    "transformation": "unknown",
+    "analytics_derived_data": "unknown",
+    "redistribution": "unknown",
+    "offline_packages": "unknown",
+    "rights_state": "review_required",
+    "license_reference": null,
+    "terms_reference": null,
+    "reviewed_at": null,
+    "review_due_at": null,
+    "attribution_text": null,
+    "attribution_placement": null
+  },
+  "retry_guidance": {
+    "retryable": false,
+    "retry_after_seconds": null,
+    "reason": null
+  },
+  "request_id": "fixture-request-0001",
+  "duration_ms": 2,
+  "cost_units": 0,
+  "warnings": []
+}
