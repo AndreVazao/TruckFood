@@ -1,0 +1,45 @@
+{
+  "registry_version": "1.0.0",
+  "registry_revision": "synthetic-fixture-0001",
+  "environment": "fixture",
+  "entries": [
+    {
+      "registry_entry_id": "example.synthetic.poi.fixture",
+      "provider_id": "example.synthetic",
+      "adapter_id": "example.poi.fixture",
+      "adapter_version": "0.0.0-fixture",
+      "provider_product_version": "not-applicable-fixture",
+      "environment": "fixture",
+      "lifecycle_state": "draft",
+      "capability_declaration": {
+        "reference": "docs/specifications/examples/provider-capability.fixture.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "contract_version": "1.0.0",
+        "immutable_revision": null
+      },
+      "configuration_keys": [],
+      "rights_governance": {
+        "review_state": "not_reviewed",
+        "review_reference": null,
+        "reviewed_at": null,
+        "review_due_at": null
+      },
+      "operational_health": {
+        "state": "unknown",
+        "checked_at": null,
+        "note": "Synthetic fixture; no network adapter exists."
+      },
+      "priority": 1000,
+      "activated_at": null,
+      "retired_at": null
+    }
+  ],
+  "policy": {
+    "policy_version": "1.0.0",
+    "eligibility_first": true,
+    "unknown_rights_fail_closed": true,
+    "unknown_vehicle_capability_fail_closed": true,
+    "allow_silent_vehicle_downgrade": false,
+    "tie_break": "priority_then_registry_entry_id_lexical"
+  }
+}
