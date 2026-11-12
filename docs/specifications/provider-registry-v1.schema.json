@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truckfood.invalid/schemas/provider-registry-v1.schema.json",
+  "title": "TruckFood Provider Registry Manifest v1",
+  "description": "Registry metadata references a separately versioned capability declaration; synthetic schema only, not a runtime registry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "registry_version",
+    "registry_revision",
+    "environment",
+    "entries"
+  ],
+  "properties": {
+    "registry_version": {
+      "const": "1.0.0"
+    },
+    "registry_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "enum": [
+        "fixture",
+        "development",
+        "staging",
+        "production"
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registry_entry_id",
+        "provider_id",
+        "adapter_id",
+        "adapter_version",
+        "provider_product_version",
+        "environment",
+        "lifecycle_state",
+        "capability_declaration",
+        "configuration_keys",
+        "rights_governance",
+        "operational_health",
+        "priority"
+      ],
+      "properties": {
+        "registry_entry_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{2,99}$"
+        },
+        "provider_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adapter_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_product_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "enum": [
+            "fixture",
+            "development",
+            "staging",
+            "production"
+          ]
+        },
+        "lifecycle_state": {
+          "enum": [
+            "draft",
+            "under_review",
+            "approved",
+            "enabled",
+            "suspended",
+            "retired"
+          ]
+        },
+        "capability_declaration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reference",
+            "sha256",
+            "contract_version"
+          ],
+          "properties": {
+            "reference": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "contract_version": {
+              "const": "1.0.0"
+            },
+            "immutable_revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "configuration_keys": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,99}$"
+          }
+        },
+        "rights_governance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "review_state",
+            "review_reference",
+            "reviewed_at",
+            "review_due_at"
+          ],
+          "properties": {
+            "review_state": {
+              "enum": [
+                "not_reviewed",
+                "in_review",
+                "approved",
+                "conditional",
+                "blocked",
+                "expired"
+              ]
+            },
+            "review_reference": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "reviewed_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "review_due_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          }
+        },
+        "operational_health": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "checked_at"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "unknown",
+                "healthy",
+                "degraded",
+                "unavailable",
+                "disabled"
+              ]
+            },
+            "checked_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1000
+            }
+          }
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "activated_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "retired_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "eligibility_first",
+        "unknown_rights_fail_closed",
+        "unknown_vehicle_capability_fail_closed",
+        "allow_silent_vehicle_downgrade",
+        "tie_break"
+      ],
+      "properties": {
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eligibility_first": {
+          "const": true
+        },
+        "unknown_rights_fail_closed": {
+          "const": true
+        },
+        "unknown_vehicle_capability_fail_closed": {
+          "const": true
+        },
+        "allow_silent_vehicle_downgrade": {
+          "const": false
+        },
+        "tie_break": {
+          "const": "priority_then_registry_entry_id_lexical"
+        }
+      }
+    }
+  }
+}
