@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   validate:
-    name: OpenAPI and provider schema validation
+    name: OpenAPI, provider contract and registry validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -56,7 +56,7 @@ jobs:
           Draft202012Validator.check_schema(schema)
           validator = Draft202012Validator(schema, format_checker=FormatChecker())
 
-          fixtures = sorted(Path("docs/specifications/examples").glob("*.fixture.json"))
+          fixtures = sorted(Path("docs/specifications/examples").glob("provider-*.fixture.json"))
           if not fixtures:
               raise SystemExit("No provider contract fixtures found.")
 
@@ -71,4 +71,19 @@ jobs:
               print(f"VALID: {fixture_path}")
 
           print(f"Validated {len(fixtures)} provider contract fixture(s).")
+
+          registry_schema_path = Path("docs/specifications/provider-registry-v1.schema.json")
+          registry_schema = json.loads(registry_schema_path.read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(registry_schema)
+          registry_validator = Draft202012Validator(registry_schema, format_checker=FormatChecker())
+          registry_fixture = Path("docs/specifications/examples/registry.fixture.json")
+          registry_instance = json.loads(registry_fixture.read_text(encoding="utf-8"))
+          registry_errors = sorted(registry_validator.iter_errors(registry_instance), key=lambda error: list(error.path))
+          if registry_errors:
+              for error in registry_errors:
+                  location = ".".join(str(part) for part in error.path) or "<root>"
+                  print(f"{registry_fixture}:{location}: {error.message}")
+              raise SystemExit("Registry schema validation failed.")
+          print(f"VALID: {registry_fixture}")
+          print("Validated provider registry manifest fixture.")
           PY
