@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.2.0  
+**Version:** 3.3.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-12  
 **Repository:** `AndreVazao/TruckFood`  
@@ -78,6 +78,10 @@ The discovery baseline now includes:
 - `docs/specifications/provider-contract-v1.schema.json`
 - `docs/specifications/examples/provider-capability.fixture.json`
 - `docs/specifications/examples/provider-result.fixture.json`
+- `docs/specifications/PROVIDER_RUNTIME_V1.md`
+- `src/truckfood_providers/__init__.py`
+- `src/truckfood_providers/registry.py`
+- `tests/test_provider_registry.py`
 - `docs/specifications/PROVIDER_REGISTRY_V1.md`
 - `docs/specifications/provider-registry-v1.schema.json`
 - `docs/specifications/examples/registry.fixture.json`
@@ -87,6 +91,14 @@ The discovery baseline now includes:
 ### 5.19 Provider registry and deterministic selection
 
 ADR-0019 and the Provider Registry v1 specification define a registry manifest that references a separately versioned capability declaration by immutable reference and SHA-256 digest. Registry metadata covers adapter identity/version, environment, lifecycle, rights-review governance, operational health and configuration key names only; capability details remain authoritative in the declaration. Selection is eligibility-first and deterministic, with fail-closed handling for unknown/expired rights and unknown safety-critical vehicle support. No silent downgrade from truck routing to car routing is permitted. A synthetic fixture, JSON Schema and independent CI validation step have been added. This is documentation and structural validation only: there is no runtime registry, selector, health probe, live adapter or approved production provider.
+
+### 5.20 Initial provider registry runtime (feature branch)
+
+The feature branch `feat/provider-runtime-v1` introduces the first executable provider-runtime slice in `src/truckfood_providers`. It loads registry manifests, confines capability declaration paths to an explicit repository root, verifies SHA-256 pins and provider/adapter version identity, then applies deterministic eligibility-first selection. The selector fails closed on non-enabled lifecycle/environment, unapproved or overdue rights review, unknown/stale/unavailable health, unsupported operation/family/geography, missing required vehicle parameters and data rights not explicitly allowed. Eligible candidates are ordered by ascending priority and stable registry ID. It performs no network calls, dynamic imports, secret retrieval or adapter invocation.
+
+Fifteen standard-library unit tests cover selection, digest/path/identity integrity, rights, vehicle capability, geography, health, lifecycle, environment, no-fallback behaviour and deterministic ordering. The CI workflow now runs these tests after schema validation. The sample registry fixture remains intentionally ineligible and synthetic.
+
+This is an initial runtime foundation, not a production provider platform. Full runtime JSON Schema validation, regional geometry, conditional-rights evaluation, configurable health thresholds, quota/cost enforcement, trusted adapter registration/invocation and real provider integration remain outstanding. The branch requires a successful GitHub Actions run and review before merge. No provider is approved for production.
 
 ## 4. Repository Foundation
 

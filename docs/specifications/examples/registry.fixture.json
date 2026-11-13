@@ -5,15 +5,15 @@
   "entries": [
     {
       "registry_entry_id": "example.synthetic.poi.fixture",
-      "provider_id": "example.synthetic",
-      "adapter_id": "example.poi.fixture",
-      "adapter_version": "0.0.0-fixture",
-      "provider_product_version": "not-applicable-fixture",
+      "provider_id": "fixture.openstreetmap",
+      "adapter_id": "fixture.osm.poi",
+      "adapter_version": "1.0.0",
+      "provider_product_version": "fixture-2026-01",
       "environment": "fixture",
       "lifecycle_state": "draft",
       "capability_declaration": {
         "reference": "docs/specifications/examples/provider-capability.fixture.json",
-        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "sha256": "dadc503fcfedf0d1595d4e0120a669f68443c3e5a1f2e79af8adf84886f16c9c",
         "contract_version": "1.0.0",
         "immutable_revision": null
       },
