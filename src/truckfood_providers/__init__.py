@@ -1,4 +1,11 @@
-"""TruckFood provider registry runtime (stdlib-only foundation)."""
+"""TruckFood provider runtime (stdlib-only foundation)."""
+from .adapters import (
+    AdapterDispatcher,
+    AdapterRegistrationError,
+    AdapterResult,
+    DispatchResult,
+    ProviderAdapter,
+)
 from .registry import (
     RegistryError,
     SelectionRequest,
@@ -8,6 +15,11 @@ from .registry import (
 )
 
 __all__ = [
+    "AdapterDispatcher",
+    "AdapterRegistrationError",
+    "AdapterResult",
+    "DispatchResult",
+    "ProviderAdapter",
     "RegistryError",
     "SelectionRequest",
     "SelectionDecision",
