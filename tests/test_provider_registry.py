@@ -96,6 +96,19 @@ class ProviderRegistryTests(unittest.TestCase):
         self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         return load_registry(self.manifest_path, self.root)
 
+    def test_checked_in_synthetic_fixture_loads_but_is_not_selectable(self):
+        manifest_path = ROOT / "docs/specifications/examples/registry.fixture.json"
+        manifest = load_registry(manifest_path, ROOT)
+        request = SelectionRequest(
+            environment="fixture",
+            capability_family="poi_business",
+            operation="search_poi",
+            country_code="PT",
+        )
+        result = select_provider(manifest, request, now=self.now)
+        self.assertFalse(result.selected)
+        self.assertIn("not_enabled_in_requested_environment", str(result.rejected))
+
     def test_selects_eligible_provider(self):
         manifest = self.load(build_manifest(self.root))
         result = select_provider(manifest, self.request, now=self.now)
