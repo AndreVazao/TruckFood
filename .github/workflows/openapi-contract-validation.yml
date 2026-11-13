@@ -87,3 +87,6 @@ jobs:
           print(f"VALID: {registry_fixture}")
           print("Validated provider registry manifest fixture.")
           PY
+      - name: Run provider registry runtime tests
+        run: python -m unittest discover -s tests -v
+
