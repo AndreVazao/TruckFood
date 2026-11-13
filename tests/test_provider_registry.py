@@ -46,14 +46,14 @@ def build_manifest(root: Path, *, rights_state="reviewed", right="allowed"):
     return {
         "registry_version": "1.0.0",
         "registry_revision": "test-1",
-        "environment": "test",
+        "environment": "development",
         "entries": [{
             "registry_entry_id": "test.adapter",
             "provider_id": "test.provider",
             "adapter_id": "test.poi",
             "adapter_version": "1.0.0",
             "provider_product_version": "test",
-            "environment": "test",
+            "environment": "development",
             "lifecycle_state": "enabled",
             "capability_declaration": {
                 "reference": "capability.json",
@@ -80,7 +80,7 @@ class ProviderRegistryTests(unittest.TestCase):
         self.manifest_path = self.root / "registry.json"
         self.now = datetime(2026, 11, 13, 12, 0, tzinfo=timezone.utc)
         self.request = SelectionRequest(
-            environment="test",
+            environment="development",
             capability_family="poi_business",
             operation="search_poi",
             country_code="PT",
@@ -137,7 +137,7 @@ class ProviderRegistryTests(unittest.TestCase):
     def test_rejects_missing_vehicle_parameter(self):
         manifest = self.load(build_manifest(self.root))
         request = SelectionRequest(
-            environment="test", capability_family="poi_business",
+            environment="development", capability_family="poi_business",
             operation="search_poi", required_vehicle_parameters=("adr_hazmat",),
         )
         result = select_provider(manifest, request, now=self.now)
@@ -147,7 +147,7 @@ class ProviderRegistryTests(unittest.TestCase):
     def test_rejects_wrong_country(self):
         manifest = self.load(build_manifest(self.root))
         request = SelectionRequest(
-            environment="test", capability_family="poi_business",
+            environment="development", capability_family="poi_business",
             operation="search_poi", country_code="ES",
         )
         result = select_provider(manifest, request, now=self.now)
@@ -187,7 +187,7 @@ class ProviderRegistryTests(unittest.TestCase):
     def test_no_candidate_is_not_a_fallback(self):
         manifest = self.load(build_manifest(self.root))
         request = SelectionRequest(
-            environment="test", capability_family="routing",
+            environment="development", capability_family="routing",
             operation="truck_route", required_vehicle_parameters=("height_m",),
         )
         result = select_provider(manifest, request, now=self.now)
