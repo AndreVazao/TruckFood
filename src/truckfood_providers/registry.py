@@ -103,6 +103,8 @@ def load_registry(manifest_path: str | Path, repository_root: str | Path) -> dic
         if not isinstance(entry_id, str) or not entry_id or entry_id in seen:
             raise RegistryError(f"{where} has an empty or duplicate registry_entry_id.")
         seen.add(entry_id)
+        if entry["environment"] not in {"fixture", "development", "staging", "production"}:
+            raise RegistryError(f"{where} has invalid environment.")
         if entry["environment"] != manifest["environment"]:
             raise RegistryError(f"{where} environment differs from manifest environment.")
         if entry["lifecycle_state"] not in {
@@ -151,8 +153,9 @@ def _candidate_rejection(
     rights_governance = entry["rights_governance"]
     if rights_governance.get("review_state") != "approved":
         return "rights_governance_not_approved"
+    reviewed_at = _parse_time(rights_governance.get("reviewed_at"))
     due = _parse_time(rights_governance.get("review_due_at"))
-    if due is None or due <= now:
+    if reviewed_at is None or reviewed_at > now or due is None or due <= now:
         return "rights_review_missing_or_overdue"
 
     health = entry["operational_health"]
