@@ -24,7 +24,7 @@ The first runtime slice provides:
 from truckfood_providers import SelectionRequest, load_registry, select_provider
 
 manifest = load_registry(
-    "docs/specifications/examples/registry.fixture.json",
+    "config/providers/registry.json",
     repository_root=".",
 )
 decision = select_provider(
@@ -38,7 +38,7 @@ decision = select_provider(
 )
 ```
 
-The checked-in sample is intentionally not eligible: it is a synthetic fixture, its lifecycle is `draft`, rights are unreviewed and health is unknown. The example demonstrates safe rejection, not a live provider.
+The checked-in synthetic fixture can be loaded and its digest/identity verified, but it is intentionally ineligible for selection: its lifecycle is `draft`, rights are unreviewed and health is unknown. The code example points to an application-managed manifest with valid pins; no such production manifest is supplied here.
 
 ## Current boundaries and limitations
 
