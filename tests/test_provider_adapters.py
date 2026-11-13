@@ -71,10 +71,16 @@ class AdapterDispatcherTests(unittest.TestCase):
         self.assertEqual(self.adapter.calls, [])
 
     def test_operation_must_be_implemented_by_adapter(self):
-        result = self.dispatcher.dispatch(
-            selected_decision(), operation="search_poi_extra", payload={}
+        decision = SelectionDecision(
+            {"registry_entry_id": "fake.entry", "adapter_id": "fake.poi",
+             "adapter_version": "1.0.0"},
+            {"operations": [{"operation": "geocode", "support_state": "supported"}]},
+            (), "selected_by_priority_then_registry_id",
         )
-        self.assertEqual(result.error_code, "operation_not_declared_by_selected_provider")
+        result = self.dispatcher.dispatch(
+            decision, operation="geocode", payload={}
+        )
+        self.assertEqual(result.error_code, "operation_not_implemented_by_adapter")
         self.assertEqual(self.adapter.calls, [])
 
     def test_adapter_exception_is_normalized_without_leaking_details(self):
