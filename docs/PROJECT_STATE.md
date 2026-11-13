@@ -248,7 +248,7 @@ The specification intentionally excludes future organization/fleet routes. Revie
 
 Two deterministic fixture records are included under `docs/specifications/examples/`. They are explicitly synthetic and do not claim real provider coverage, licensing approval or live integration. The contract preserves the distinction between empty, partial, unsupported, unavailable, rate-limited and invalid responses. Unknown capability or data rights must fail closed for safety-sensitive and persistence/offline decisions.
 
-`.github/workflows/openapi-contract-validation.yml` adds a GitHub Actions validation gate: Redocly CLI (pinned) lints the OpenAPI 3.1 document, and Python 3.12 with a pinned JSON Schema validator checks the provider schema and all fixture files. The workflow is configured for relevant pushes, pull requests and manual dispatch. It has been committed but no successful run has yet been confirmed in this project state. It validates specification artifacts only; it does not call providers or implement application adapters.
+`.github/workflows/openapi-contract-validation.yml` adds a GitHub Actions validation gate: Redocly CLI (pinned) lints the OpenAPI 3.1 document, and Python 3.12 with a pinned JSON Schema validator checks the provider schema and all fixture files. The workflow is configured for relevant pushes, pull requests and manual dispatch. CI run #9 passed OpenAPI lint, provider/registry schema and fixture validation, and 18 provider-registry runtime tests on commit 73caab9. This validates specifications and registry runtime only; it does not call live providers.
 
 ## 6. Discovery Research Findings
 
@@ -417,3 +417,14 @@ The exact metric will be validated during product discovery.
 TruckFood has explicitly evolved from the original restaurant-discovery concept into a broader professional-driver journey platform. Restaurant discovery remains important, but the central problem is helping trucks **arrive, stop, eat, rest and continue** with better information.
 
 This change must remain visible in future architecture and product decisions.
+
+
+### 5.25 Provider registry runtime v1 — CI verified
+
+The provider registry runtime is implemented on branch feat/provider-runtime-v1 and proposed in PR #1. It loads the registry manifest, verifies repository-contained capability declaration paths and SHA-256 pins, checks identity/version consistency, and selects candidates deterministically only when environment, lifecycle, rights review, health, operation, geography, vehicle parameters and exact rights are eligible. It does not dynamically import adapters or call networks. CI run #9 passed OpenAPI lint, provider/registry schema and fixture validation, and 18 registry runtime tests on commit 73caab9. PR #1 remains open and unmerged.
+
+### 5.26 Trusted provider adapter dispatch v1 — proposed in PR #2
+
+Branch feat/provider-adapter-dispatch-v1 adds an explicit in-process adapter allowlist and normalized dispatch boundary in src/truckfood_providers/adapters.py. Application code registers concrete adapter instances by exact adapter_id and adapter_version; registry manifest data cannot load code. Dispatch requires a successful registry selection, a declared supported operation and a matching registered adapter/version. Unknown adapters, unsupported operations, invalid adapter results and exceptions fail closed with normalized outcomes. The package exports the new API, and tests cover registration, dispatch, mismatch, exception normalization and result validation.
+
+This is a stacked change based on PR #1 and is not yet merged. It intentionally does not implement live providers, dynamic imports, credentials, timeouts, retries, failover, circuit breakers, quotas, billing or telemetry. The retryable field is informational only; no retry is performed. CI run #11 passed on the preceding PR head; the latest test refinement separately verifies that a provider-declared operation absent from the registered adapter is rejected before invocation. A fresh CI run for the latest branch head is required before declaring the complete PR validated.
