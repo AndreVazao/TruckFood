@@ -62,6 +62,7 @@ def build_manifest(root: Path, *, rights_state="reviewed", right="allowed"):
             },
             "rights_governance": {
                 "review_state": "approved",
+                "reviewed_at": "2026-11-13T11:00:00Z",
                 "review_due_at": "2027-01-01T00:00:00Z",
             },
             "operational_health": {
@@ -121,6 +122,20 @@ class ProviderRegistryTests(unittest.TestCase):
         self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         with self.assertRaisesRegex(RegistryError, "identity mismatch"):
             load_registry(self.manifest_path, self.root)
+
+    def test_rejects_unknown_manifest_environment(self):
+        manifest = build_manifest(self.root)
+        manifest["environment"] = "production"
+        self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(RegistryError, "environment differs"):
+            load_registry(self.manifest_path, self.root)
+
+    def test_fails_closed_when_review_timestamp_missing(self):
+        manifest = self.load(build_manifest(self.root))
+        manifest["entries"][0]["rights_governance"]["reviewed_at"] = None
+        result = select_provider(manifest, self.request, now=self.now)
+        self.assertFalse(result.selected)
+        self.assertIn("rights_review_missing_or_overdue", str(result.rejected))
 
     def test_fails_closed_for_unreviewed_rights(self):
         manifest = self.load(build_manifest(self.root, rights_state="review_required"))
