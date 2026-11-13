@@ -5,10 +5,16 @@ on:
     branches: [main]
     paths:
       - "docs/specifications/**"
+      - "src/truckfood_providers/**"
+      - "tests/**"
+      - "docs/PROJECT_STATE.md"
       - ".github/workflows/openapi-contract-validation.yml"
   pull_request:
     paths:
       - "docs/specifications/**"
+      - "src/truckfood_providers/**"
+      - "tests/**"
+      - "docs/PROJECT_STATE.md"
       - ".github/workflows/openapi-contract-validation.yml"
   workflow_dispatch:
 
