@@ -88,5 +88,5 @@ jobs:
           print("Validated provider registry manifest fixture.")
           PY
       - name: Run provider registry runtime tests
-        run: python -m unittest discover -s tests -v
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
 
