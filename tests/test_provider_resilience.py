@@ -93,7 +93,7 @@ class ResilienceExecutorTests(unittest.TestCase):
         self.assertEqual(outcome.dispatch.outcome, "unavailable")
 
     def test_deadline_prevents_first_attempt(self):
-        clock_values = iter((0.0, 2.0))
+        clock_values = iter((0.0, 2.0, 2.0))
         executor = ResilienceExecutor(
             RetryPolicy(max_attempts=3, base_delay_seconds=0.2, max_delay_seconds=0.5),
             clock=lambda: next(clock_values),
