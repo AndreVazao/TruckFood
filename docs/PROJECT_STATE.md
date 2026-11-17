@@ -2,7 +2,7 @@
 
 **Version:** 3.3.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-12  
+**Last Update:** 2026-11-17  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -442,3 +442,6 @@ Branch `feat/provider-retry-engine-v1` is stacked on PR #3. It adds `ResilienceE
 Important limitation: the current adapter interface is synchronous. The executor cannot forcibly interrupt a blocked adapter call. It rejects late results after the call returns and clips retries/sleeps to the remaining budget; each future network adapter must enforce connect/read/total timeouts in its transport client. This is not a production hard-cancellation guarantee. Operation-level idempotency metadata is also not yet modeled, so adapters must not mark non-idempotent operations retryable.
 
 The new implementation is a stacked PR proposal only. No circuit breaker, persistent/shared quota ledger, billing, failover, live provider or paid API call is included. PRs #1–#3 remain open and unmerged pending review.
+
+CI run #15 (GitHub Actions, 2026-11-15) failed in the provider runtime test step before executing any test body: `src/truckfood_providers/__init__.py` contained literal escaped newline sequences (`\\n`) in Python source, producing a SyntaxError during test-module imports. OpenAPI lint and provider/registry schema+fixture validation passed; the runtime test suite did not run successfully. A corrective commit rewrites package exports with real line breaks. The pre-attempt deadline test was also corrected to use a deterministic clock sequence (start at 0, next deadline check at 2 with a 1-second budget), so it now exercises an actually expired deadline. These fixes are committed to the PR #4 branch; a fresh CI run is required before claiming validation success.
+
