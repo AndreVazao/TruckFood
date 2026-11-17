@@ -6,23 +6,27 @@ from .adapters import (
     DispatchResult,
     ProviderAdapter,
 )
-from .resilience import ResilienceExecutor, ResilienceResult, RetryPolicy\nfrom .registry import (
+from .registry import (
     RegistryError,
-    SelectionRequest,
     SelectionDecision,
+    SelectionRequest,
     load_registry,
     select_provider,
 )
+from .resilience import ResilienceExecutor, ResilienceResult, RetryPolicy
 
 __all__ = [
     "AdapterDispatcher",
     "AdapterRegistrationError",
     "AdapterResult",
     "DispatchResult",
-    "ProviderAdapter",\n    "ResilienceExecutor",\n    "ResilienceResult",\n    "RetryPolicy",
+    "ProviderAdapter",
     "RegistryError",
-    "SelectionRequest",
+    "ResilienceExecutor",
+    "ResilienceResult",
+    "RetryPolicy",
     "SelectionDecision",
+    "SelectionRequest",
     "load_registry",
     "select_provider",
 ]
