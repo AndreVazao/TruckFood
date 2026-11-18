@@ -439,9 +439,18 @@ Branch `feat/provider-resilience-policy-v1` is stacked on PR #2 and introduces a
 
 Branch `feat/provider-retry-engine-v1` is stacked on PR #3. It adds `ResilienceExecutor` and `RetryPolicy` with a maximum of three total attempts, retries restricted to explicitly retryable transient `unavailable`/`rate_limited` outcomes, full-jitter exponential backoff, a cooperative total execution budget, injected clock/sleeper/random sources, safe retry metadata and deterministic unit tests.
 
-Important limitation: the current adapter interface is synchronous. The executor cannot forcibly interrupt a blocked adapter call. It rejects late results after the call returns and clips retries/sleeps to the remaining budget; each future network adapter must enforce connect/read/total timeouts in its transport client. This is not a production hard-cancellation guarantee. Operation-level idempotency metadata is also not yet modeled, so adapters must not mark non-idempotent operations retryable.
+Important limitation: the current adapter interface is synchronous. The executor cannot forcibly interrupt a blocked adapter call. It rejects late results after the call returns and clips retries/sleeps to the remaining budget; each future network adapter must enforce connect/read/total timeouts in its transport client. This is not a production hard-cancellation guarantee. At the time of this PR #4 baseline, operation-level idempotency was not yet modeled. PR #5 adds an explicit per-operation retry-safety contract; until that contract is adopted by a caller, the safe default remains no retry.
 
 The new implementation is a stacked PR proposal only. No circuit breaker, persistent/shared quota ledger, billing, failover, live provider or paid API call is included. PRs #1–#3 remain open and unmerged pending review.
 
 CI run #15 (GitHub Actions, 2026-11-15) failed in the provider runtime test step before executing any test body: `src/truckfood_providers/__init__.py` contained literal escaped newline sequences (`\\n`) in Python source, producing a SyntaxError during test-module imports. OpenAPI lint and provider/registry schema+fixture validation passed; the runtime test suite did not run successfully. A corrective commit rewrites package exports with real line breaks. The pre-attempt deadline test was also corrected to use a deterministic clock sequence (start at 0, next deadline check at 2 with a 1-second budget), so it now exercises an actually expired deadline. These fixes are committed to the PR #4 branch; a fresh CI run is required before claiming validation success.
 
+
+
+### 5.29 Provider operation idempotency v1 — implementation proposal (PR #5)
+
+Branch `feat/provider-operation-idempotency-v1` is stacked on the verified PR #4 head. It adds `RetrySafety` with three explicit modes: `never` (default), `idempotent`, and `idempotency_key_required`. The retry executor now receives an immutable `ExecutionContext` on every attempt. For key-required operations, configuration is rejected before the callback runs unless a non-empty key is supplied, and the same key is passed unchanged on every attempt. Adapter retry flags cannot override the operation-level `never` policy.
+
+Deterministic tests cover default-deny retry behavior, allowlisted retries for declared idempotent operations, required-key validation, stable key propagation across attempts, conflict/invalid no-retry behavior, deadlines and sanitization. The new specification explicitly warns that the executor cannot prove a callback forwards the key or that a provider honours deduplication. Reservations, orders and payments must remain `never` until provider-specific idempotency semantics are verified. No live integration, payment, booking or network call is enabled.
+
+PR #5 is a proposal only, stacked on PR #4. It must pass the full GitHub Actions contract/runtime workflow and review before merge. PRs #1–#5 remain open and unmerged.
