@@ -454,3 +454,12 @@ Branch `feat/provider-operation-idempotency-v1` is stacked on the verified PR #4
 Deterministic tests cover default-deny retry behavior, allowlisted retries for declared idempotent operations, required-key validation, stable key propagation across attempts, conflict/invalid no-retry behavior, deadlines and sanitization. The new specification explicitly warns that the executor cannot prove a callback forwards the key or that a provider honours deduplication. Reservations, orders and payments must remain `never` until provider-specific idempotency semantics are verified. No live integration, payment, booking or network call is enabled.
 
 PR #5 is a proposal only, stacked on PR #4. It must pass the full GitHub Actions contract/runtime workflow and review before merge. PRs #1–#5 remain open and unmerged.
+
+
+### 5.30 Provider circuit breaker v1 — implementation proposal (PR #6)
+
+Branch `feat/provider-circuit-breaker-v1` is stacked on the CI-verified PR #5 head. It adds a thread-safe, process-local circuit breaker isolated by exact provider identity and operation. The configurable default opens after three consecutive `unavailable` outcomes, waits 30 seconds, and permits one concurrent half-open probe. Open circuits reject calls locally with a normalized unavailable result and retry-after metadata. Successful half-open probes close the circuit; unavailable probes reopen it. Invalid, unsupported, conflict and rate-limited outcomes do not count as provider-health failures.
+
+Deterministic tests cover closed/open/half-open transitions, provider/operation isolation, no invocation while open, probe concurrency, failure reset and stale in-flight completion protection. This implementation is process-local only: it is not shared across workers or restarts and is not a production distributed breaker. It does not select alternatives, implement failover, quotas, billing, persistence or live provider calls.
+
+PR #6 is stacked on PR #5 and remains a proposal pending CI and review. PRs #1–#6 remain open and unmerged.
