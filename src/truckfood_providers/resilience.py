@@ -1,18 +1,52 @@
-"""Bounded, deterministic retry orchestration for trusted provider dispatch.
-
-This module enforces attempt budgets and cooperative deadlines around a synchronous
-callable. It cannot interrupt a blocked adapter call; transport-level deadlines must
-be enforced by each adapter's underlying client.
-"""
+"""Bounded retries with explicit operation-level retry safety."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from enum import Enum
 import math
 import random
 import time
 from typing import Callable, Mapping
 
 from .adapters import DispatchResult
+
+
+class RetrySafety(str, Enum):
+    """How an operation protects side effects when a request is repeated."""
+
+    NEVER = "never"
+    IDEMPOTENT = "idempotent"
+    IDEMPOTENCY_KEY_REQUIRED = "idempotency_key_required"
+
+
+@dataclass(frozen=True)
+class OperationRetryPolicy:
+    """Per-operation declaration; conservative by default."""
+
+    safety: RetrySafety = RetrySafety.NEVER
+    idempotency_key: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.safety, RetrySafety):
+            raise ValueError("safety must be a RetrySafety value")
+        if self.idempotency_key is not None:
+            if not isinstance(self.idempotency_key, str) or not self.idempotency_key.strip():
+                raise ValueError("idempotency_key must be a non-empty string")
+        if self.safety is RetrySafety.IDEMPOTENT and self.idempotency_key is not None:
+            raise ValueError("idempotent operations must not supply an idempotency_key")
+        if self.safety is RetrySafety.IDEMPOTENCY_KEY_REQUIRED and self.idempotency_key is None:
+            raise ValueError("idempotency_key is required by this operation policy")
+        if self.safety is not RetrySafety.IDEMPOTENCY_KEY_REQUIRED and self.idempotency_key is not None:
+            raise ValueError("idempotency_key is only valid when required by the operation")
+
+
+@dataclass(frozen=True)
+class ExecutionContext:
+    """Immutable context passed to every attempt; key remains stable across retries."""
+
+    retry_safety: RetrySafety
+    idempotency_key: str | None
+    deadline_monotonic: float
 
 
 @dataclass(frozen=True)
@@ -49,11 +83,11 @@ class ResilienceResult:
 
 
 class ResilienceExecutor:
-    """Apply bounded retries and a cooperative total execution budget.
+    """Apply bounded retries only when the operation contract permits repetition.
 
-    The execute callback is normally AdapterDispatcher.dispatch. A synchronous
-    callback that blocks cannot be forcibly cancelled by this class. If it returns
-    after the deadline, the result is discarded and a timeout outcome is returned.
+    The callback receives the same immutable ExecutionContext on every attempt.
+    For idempotency-key operations it MUST forward context.idempotency_key unchanged
+    to the provider's idempotency mechanism. This class cannot prove remote support.
     """
 
     def __init__(
@@ -71,15 +105,21 @@ class ResilienceExecutor:
 
     def execute(
         self,
-        execute: Callable[[], DispatchResult],
+        execute: Callable[[ExecutionContext], DispatchResult],
         *,
         deadline_seconds: float,
+        operation_policy: OperationRetryPolicy | None = None,
     ) -> ResilienceResult:
         if not math.isfinite(deadline_seconds) or deadline_seconds <= 0:
             raise ValueError("deadline_seconds must be finite and > 0")
-
+        operation = operation_policy or OperationRetryPolicy()
         started = self._clock()
         deadline = started + deadline_seconds
+        context = ExecutionContext(
+            retry_safety=operation.safety,
+            idempotency_key=operation.idempotency_key,
+            deadline_monotonic=deadline,
+        )
         attempts = 0
         reasons: list[str] = []
         last_result: DispatchResult | None = None
@@ -91,10 +131,8 @@ class ResilienceExecutor:
 
             attempts += 1
             try:
-                result = execute()
+                result = execute(context)
             except Exception:
-                # The dispatcher normally normalizes adapter exceptions. This guard
-                # prevents an unexpected callback exception from leaking details.
                 result = DispatchResult(
                     outcome="unavailable",
                     error_code="resilience_execution_failed",
@@ -114,13 +152,14 @@ class ResilienceExecutor:
             last_result = result
 
             can_retry = (
-                result.retryable
+                operation.safety is not RetrySafety.NEVER
+                and result.retryable
                 and result.outcome in self.policy.retryable_outcomes
                 and attempts < self.policy.max_attempts
             )
             if not can_retry:
                 return ResilienceResult(
-                    dispatch=self._with_metadata(result, attempts, elapsed, reasons),
+                    dispatch=self._with_metadata(result, attempts, elapsed, reasons, operation),
                     attempts=attempts,
                     elapsed_seconds=elapsed,
                     retry_reasons=tuple(reasons),
@@ -141,12 +180,11 @@ class ResilienceExecutor:
             if delay > 0:
                 self._sleep(delay)
 
-        # The loop can only exhaust after a non-retryable result or the attempt cap.
         if last_result is None:
             return self._deadline_result(attempts, started, reasons)
         elapsed = max(0.0, self._clock() - started)
         return ResilienceResult(
-            dispatch=self._with_metadata(last_result, attempts, elapsed, reasons),
+            dispatch=self._with_metadata(last_result, attempts, elapsed, reasons, operation),
             attempts=attempts,
             elapsed_seconds=elapsed,
             retry_reasons=tuple(reasons),
@@ -154,13 +192,19 @@ class ResilienceExecutor:
 
     @staticmethod
     def _with_metadata(
-        result: DispatchResult, attempts: int, elapsed: float, reasons: list[str]
+        result: DispatchResult,
+        attempts: int,
+        elapsed: float,
+        reasons: list[str],
+        operation: OperationRetryPolicy,
     ) -> DispatchResult:
         metadata = dict(result.metadata)
         metadata.update({
             "attempt_count": attempts,
             "elapsed_seconds": round(elapsed, 6),
             "retry_reasons": list(reasons),
+            "retry_safety": operation.safety.value,
+            "idempotency_key_used": operation.safety is RetrySafety.IDEMPOTENCY_KEY_REQUIRED,
         })
         return replace(result, metadata=metadata)
 
