@@ -16,7 +16,7 @@ Only `unavailable` counts as a provider-health failure. Successful `success`, `e
 - `open`: callback is not invoked; a normalized `unavailable/circuit_open` result is returned with retry-after metadata.
 - `half_open`: after the recovery interval, only the configured number of probes may run concurrently. A successful or non-health probe response closes the breaker; `unavailable` reopens it.
 
-A generation counter prevents late results from earlier in-flight calls from overwriting a newer open/half-open transition. State transitions and probe admission are protected by a process-local lock.
+A generation counter prevents late results from earlier in-flight calls from overwriting a newer open/half-open transition. State transitions and probe admission are protected by a process-local lock. State cardinality is capped (default 1,024 entries); when full, the least-recently-used closed entry may be evicted. Open/half-open entries are never evicted to make room. If no closed entry is available, a new call fails closed with `circuit_capacity_exceeded` and does not invoke the provider.
 
 ## Boundaries
 
