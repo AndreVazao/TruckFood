@@ -13,18 +13,28 @@ from .registry import (
     load_registry,
     select_provider,
 )
-from .resilience import ResilienceExecutor, ResilienceResult, RetryPolicy
+from .resilience import (
+    ExecutionContext,
+    OperationRetryPolicy,
+    ResilienceExecutor,
+    ResilienceResult,
+    RetryPolicy,
+    RetrySafety,
+)
 
 __all__ = [
     "AdapterDispatcher",
     "AdapterRegistrationError",
     "AdapterResult",
     "DispatchResult",
+    "ExecutionContext",
+    "OperationRetryPolicy",
     "ProviderAdapter",
     "RegistryError",
     "ResilienceExecutor",
     "ResilienceResult",
     "RetryPolicy",
+    "RetrySafety",
     "SelectionDecision",
     "SelectionRequest",
     "load_registry",
