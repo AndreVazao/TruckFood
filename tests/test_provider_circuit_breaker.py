@@ -156,9 +156,25 @@ class CircuitBreakerTests(unittest.TestCase):
             {"recovery_timeout_seconds": float("inf")},
             {"half_open_max_calls": 0},
             {"qualifying_outcomes": frozenset({"rate_limited"})},
+            {"max_circuits": 0},
         ):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 CircuitBreakerPolicy(**kwargs)
+
+    def test_capacity_evicts_oldest_closed_state_but_never_open_state(self):
+        bounded = CircuitBreaker(
+            CircuitBreakerPolicy(failure_threshold=1, max_circuits=1),
+            clock=self.clock.now,
+        )
+        bounded.execute("provider-a", "route", lambda: dispatch("success"))
+        self.clock.advance(1)
+        bounded.execute("provider-b", "route", lambda: dispatch("success"))
+        self.assertEqual(bounded.snapshot("provider-b", "route").state, CircuitState.CLOSED)
+
+        bounded.execute("provider-b", "route", lambda: dispatch("unavailable", "down"))
+        blocked = bounded.execute("provider-c", "route", lambda: dispatch("success"))
+        self.assertEqual(blocked.error_code, "circuit_capacity_exceeded")
+        self.assertFalse(blocked.metadata["provider_invoked"])
 
     def test_invalid_call_arguments_rejected(self):
         for provider, operation in (("", "route"), ("provider-a", ""), (" ", "route")):
