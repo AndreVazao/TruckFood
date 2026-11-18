@@ -25,6 +25,7 @@ class CircuitBreakerPolicy:
     recovery_timeout_seconds: float = 30.0
     half_open_max_calls: int = 1
     qualifying_outcomes: frozenset[str] = frozenset({"unavailable"})
+    max_circuits: int = 1024
 
     def __post_init__(self) -> None:
         if self.failure_threshold < 1:
@@ -33,6 +34,8 @@ class CircuitBreakerPolicy:
             raise ValueError("recovery_timeout_seconds must be finite and > 0")
         if self.half_open_max_calls < 1:
             raise ValueError("half_open_max_calls must be >= 1")
+        if self.max_circuits < 1:
+            raise ValueError("max_circuits must be >= 1")
         if not self.qualifying_outcomes or not self.qualifying_outcomes <= {"unavailable"}:
             raise ValueError("qualifying_outcomes may contain only unavailable")
 
@@ -44,6 +47,7 @@ class _Circuit:
     opened_until: float = 0.0
     half_open_in_flight: int = 0
     generation: int = 0
+    last_access: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -91,7 +95,15 @@ class CircuitBreaker:
         key = (provider_id, operation)
         now = self._clock()
         with self._lock:
-            circuit = self._circuits.setdefault(key, _Circuit())
+            circuit = self._get_or_create(key, now)
+            if circuit is None:
+                return DispatchResult(
+                    outcome="unavailable",
+                    error_code="circuit_capacity_exceeded",
+                    retryable=False,
+                    metadata={"provider_invoked": False},
+                )
+            circuit.last_access = now
             if circuit.state is CircuitState.OPEN:
                 if now < circuit.opened_until:
                     return self._rejected(circuit, now)
@@ -158,7 +170,10 @@ class CircuitBreaker:
         key = (provider_id, operation)
         now = self._clock()
         with self._lock:
-            circuit = self._circuits.setdefault(key, _Circuit())
+            circuit = self._get_or_create(key, now)
+            if circuit is None:
+                raise RuntimeError("Circuit state capacity exhausted; no closed entry can be evicted")
+            circuit.last_access = now
             if circuit.state is CircuitState.OPEN and now >= circuit.opened_until:
                 circuit.state = CircuitState.HALF_OPEN
                 circuit.half_open_in_flight = 0
@@ -172,6 +187,25 @@ class CircuitBreaker:
                 if circuit.state is CircuitState.OPEN else 0.0,
                 half_open_in_flight=circuit.half_open_in_flight,
             )
+
+
+    def _get_or_create(self, key: tuple[str, str], now: float) -> _Circuit | None:
+        circuit = self._circuits.get(key)
+        if circuit is not None:
+            return circuit
+        if len(self._circuits) >= self.policy.max_circuits:
+            evictable = [
+                (item.last_access, existing_key)
+                for existing_key, item in self._circuits.items()
+                if item.state is CircuitState.CLOSED and item.half_open_in_flight == 0
+            ]
+            if not evictable:
+                return None
+            _, oldest_key = min(evictable)
+            del self._circuits[oldest_key]
+        circuit = _Circuit(last_access=now)
+        self._circuits[key] = circuit
+        return circuit
 
     def _open(self, circuit: _Circuit, now: float) -> None:
         circuit.state = CircuitState.OPEN
