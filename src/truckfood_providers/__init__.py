@@ -6,6 +6,12 @@ from .adapters import (
     DispatchResult,
     ProviderAdapter,
 )
+from .circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerPolicy,
+    CircuitSnapshot,
+    CircuitState,
+)
 from .registry import (
     RegistryError,
     SelectionDecision,
@@ -26,6 +32,10 @@ __all__ = [
     "AdapterDispatcher",
     "AdapterRegistrationError",
     "AdapterResult",
+    "CircuitBreaker",
+    "CircuitBreakerPolicy",
+    "CircuitSnapshot",
+    "CircuitState",
     "DispatchResult",
     "ExecutionContext",
     "OperationRetryPolicy",
