@@ -12,6 +12,17 @@ from .circuit_breaker import (
     CircuitSnapshot,
     CircuitState,
 )
+from .quota import (
+    QuotaError,
+    QuotaExceeded,
+    QuotaManager,
+    QuotaPolicy,
+    QuotaPolicyMissing,
+    QuotaReservation,
+    QuotaReservationConflict,
+    QuotaReservationNotFound,
+    QuotaSnapshot,
+)
 from .registry import (
     RegistryError,
     SelectionDecision,
@@ -40,6 +51,15 @@ __all__ = [
     "ExecutionContext",
     "OperationRetryPolicy",
     "ProviderAdapter",
+    "QuotaError",
+    "QuotaExceeded",
+    "QuotaManager",
+    "QuotaPolicy",
+    "QuotaPolicyMissing",
+    "QuotaReservation",
+    "QuotaReservationConflict",
+    "QuotaReservationNotFound",
+    "QuotaSnapshot",
     "RegistryError",
     "ResilienceExecutor",
     "ResilienceResult",
