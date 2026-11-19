@@ -463,3 +463,14 @@ Branch `feat/provider-circuit-breaker-v1` is stacked on the CI-verified PR #5 he
 Deterministic tests cover closed/open/half-open transitions, provider/operation isolation, no invocation while open, probe concurrency, failure reset, stale in-flight completion protection and bounded state capacity. The in-memory state map is capped at 1,024 entries by default; only least-recently-used closed entries may be evicted, while open/half-open entries are preserved. If capacity is exhausted by active entries, new calls fail closed without invoking the provider. This implementation is process-local only: it is not shared across workers or restarts and is not a production distributed breaker. It does not select alternatives, implement failover, quotas, billing, persistence or live provider calls.
 
 PR #6 is stacked on PR #5 and remains a proposal pending CI and review. PRs #1–#6 remain open and unmerged.
+
+
+### 5.31 Provider quota manager v1 — implementation proposal (PR #7)
+
+Branch `feat/provider-quota-manager-v1` is stacked on the CI-verified PR #6 head. It introduces explicit quota policies per exact provider/operation pair, atomic process-local reservations, settlement using actual units, release, TTL expiry, stable caller-supplied reservation IDs, bounded reservation records and fail-closed behavior when policy or capacity is missing. Outstanding reservations count against the limit before the provider callback may be invoked.
+
+The unit is a provider-neutral cost unit, not an assumed currency or universal request price. The caller must reserve before dispatch and settle or release afterwards. Uncertain provider outcomes must not automatically release quota because billable work may already have occurred. Reservation IDs are not provider idempotency keys. Deterministic tests cover concurrency, limit enforcement, settlement, release, expiry, idempotent active reservation, replay protection, window reset, policy isolation and fail-closed capacity.
+
+Important production boundary: this v1 ledger is process-local and in-memory. Multiple workers and restarts have independent counters; it is not production multi-worker quota enforcement. Production requires a shared transactional/atomic backend and durable reconciliation, which are intentionally outside this increment. No credentials, paid calls, billing, purchases, live provider integrations or deployment changes are included.
+
+PR #7 is a proposal stacked on PR #6. It must pass the full GitHub Actions contract/runtime workflow and review before merge. PRs #1–#7 remain open and unmerged.
