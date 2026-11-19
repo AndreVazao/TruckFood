@@ -462,7 +462,7 @@ Branch `feat/provider-circuit-breaker-v1` is stacked on the CI-verified PR #5 he
 
 Deterministic tests cover closed/open/half-open transitions, provider/operation isolation, no invocation while open, probe concurrency, failure reset, stale in-flight completion protection and bounded state capacity. The in-memory state map is capped at 1,024 entries by default; only least-recently-used closed entries may be evicted, while open/half-open entries are preserved. If capacity is exhausted by active entries, new calls fail closed without invoking the provider. This implementation is process-local only: it is not shared across workers or restarts and is not a production distributed breaker. It does not select alternatives, implement failover, quotas, billing, persistence or live provider calls.
 
-PR #6 is stacked on PR #5 and remains a proposal pending CI and review. PRs #1–#6 remain open and unmerged.
+PR #6 is stacked on PR #5. Its full GitHub Actions workflow passed on 2026-11-19 (run #44379865079); it remains unmerged pending review. PRs #1–#6 remain open and unmerged.
 
 
 ### 5.31 Provider quota manager v1 — implementation proposal (PR #7)
