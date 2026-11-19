@@ -159,8 +159,10 @@ class QuotaManagerTests(unittest.TestCase):
             {"max_units": 0}, {"window_seconds": 0},
             {"reservation_ttl_seconds": float("inf")},
         ):
+            config = {"max_units": 1}
+            config.update(kwargs)
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
-                QuotaPolicy(max_units=1, **kwargs)
+                QuotaPolicy(**config)
         for units in (0, -1, True, 1.5):
             with self.subTest(units=units), self.assertRaises(ValueError):
                 self.manager.reserve("provider-a", "geocode", units=units, reservation_id="x")
