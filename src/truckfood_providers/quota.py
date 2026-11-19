@@ -43,9 +43,14 @@ class QuotaPolicy:
     def __post_init__(self) -> None:
         if isinstance(self.max_units, bool) or not isinstance(self.max_units, int) or self.max_units < 1:
             raise ValueError("max_units must be a positive integer")
-        if not math.isfinite(self.window_seconds) or self.window_seconds <= 0:
+        if (isinstance(self.window_seconds, bool)
+                or not isinstance(self.window_seconds, (int, float))
+                or not math.isfinite(self.window_seconds) or self.window_seconds <= 0):
             raise ValueError("window_seconds must be finite and > 0")
-        if not math.isfinite(self.reservation_ttl_seconds) or self.reservation_ttl_seconds <= 0:
+        if (isinstance(self.reservation_ttl_seconds, bool)
+                or not isinstance(self.reservation_ttl_seconds, (int, float))
+                or not math.isfinite(self.reservation_ttl_seconds)
+                or self.reservation_ttl_seconds <= 0):
             raise ValueError("reservation_ttl_seconds must be finite and > 0")
 
 
@@ -176,6 +181,8 @@ class QuotaManager:
             record = self._reservations.get(reservation_id)
             if record is None:
                 raise QuotaReservationNotFound("reservation not found or expired")
+            if record.state == "expired":
+                raise QuotaReservationNotFound("reservation has expired")
             if record.state != "reserved":
                 if record.state == "settled":
                     return self.snapshot(record.reservation.provider_id, record.reservation.operation)
@@ -205,6 +212,8 @@ class QuotaManager:
             record = self._reservations.get(reservation_id)
             if record is None:
                 raise QuotaReservationNotFound("reservation not found or expired")
+            if record.state == "expired":
+                raise QuotaReservationNotFound("reservation has expired")
             if record.state == "released":
                 item = record.reservation
                 return self._snapshot(item.provider_id, item.operation, item.window_id, now)
@@ -262,8 +271,8 @@ class QuotaManager:
 
     def _now(self) -> float:
         value = self._clock()
-        if not math.isfinite(value):
-            raise ValueError("clock must return a finite value")
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError("clock must return a finite numeric value")
         return value
 
     @staticmethod
