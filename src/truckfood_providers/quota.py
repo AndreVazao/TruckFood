@@ -181,9 +181,7 @@ class QuotaManager:
             record = self._reservations.get(reservation_id)
             if record is None:
                 raise QuotaReservationNotFound("reservation not found or expired")
-            if record.state == "expired":
-                raise QuotaReservationNotFound("reservation has expired")
-            if record.state != "reserved":
+            if record.state not in {"reserved", "expired"}:
                 if record.state == "settled":
                     return self.snapshot(record.reservation.provider_id, record.reservation.operation)
                 raise QuotaReservationConflict("only an active reservation can be settled")
@@ -212,8 +210,6 @@ class QuotaManager:
             record = self._reservations.get(reservation_id)
             if record is None:
                 raise QuotaReservationNotFound("reservation not found or expired")
-            if record.state == "expired":
-                raise QuotaReservationNotFound("reservation has expired")
             if record.state == "released":
                 item = record.reservation
                 return self._snapshot(item.provider_id, item.operation, item.window_id, now)
@@ -253,14 +249,21 @@ class QuotaManager:
             policy = self._policy(item.provider_id, item.operation)
             window_end = (item.window_id + 1) * policy.window_seconds
             if record.state == "reserved" and now >= item.expires_at:
-                usage = self._windows.get((item.provider_id, item.operation, item.window_id))
-                if usage is not None:
-                    usage.reserved = max(0, usage.reserved - item.units)
+                # TTL expiry is only a stale marker. The provider call may still
+                # be running or may already have incurred usage, so keep the
+                # reservation charged until explicit settlement or release.
                 record.state = "expired"
-            if record.state != "reserved" and now >= window_end:
+            if record.state not in {"reserved", "expired"} and now >= window_end:
                 del self._reservations[reservation_id]
         for key in list(self._windows):
-            if now >= (key[2] + 1) * self._policy(key[0], key[1]).window_seconds:
+            window_end = (key[2] + 1) * self._policy(key[0], key[1]).window_seconds
+            has_unreconciled_reservation = any(
+                (record.reservation.provider_id, record.reservation.operation,
+                 record.reservation.window_id) == key
+                and record.state in {"reserved", "expired"}
+                for record in self._reservations.values()
+            )
+            if now >= window_end and not has_unreconciled_reservation:
                 del self._windows[key]
 
     def _policy(self, provider_id: str, operation: str) -> QuotaPolicy:
