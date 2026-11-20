@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 3.3.0  
+**Version:** 3.4.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-17  
+**Last Update:** 2026-11-20  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -483,3 +483,12 @@ Branch `fix/quota-expiry-reconciliation-v1` is stacked on PR #7. A correctness r
 A stale reservation may be settled (actual units, defaulting to the full reserved amount) or released only through an explicit caller action representing confirmed no usage. The historical quota bucket is retained while any reservation remains unreconciled. The bounded reservation store therefore fails closed rather than silently freeing uncertain usage. Deterministic tests cover stale capacity retention, denial of additional reservations, explicit release, settlement after TTL and settlement after the window boundary.
 
 This correction does not solve process crashes, multi-worker coordination or durable leases. The ledger remains process-local and in-memory; a production shared backend still needs durable transactional state and lease/fencing semantics. No provider calls, credentials, billing, purchases or deployments are involved. PR #8 is a proposal only and must pass GitHub Actions before review; PRs #1–#8 remain open and unmerged.
+
+
+### 5.33 Shared provider quota ledger contract v1 — architecture proposal (PR #9)
+
+`docs/specifications/SHARED_PROVIDER_QUOTA_LEDGER_V1.md` defines the storage-neutral correctness contract for evolving the process-local quota manager into a durable ledger shared by multiple workers. It specifies atomic admission, durable reservations, idempotent terminal transitions, original-window accounting, explicit stale/expired handling, lease/fencing boundaries, crash recovery, uncertain provider outcomes, tenant/policy isolation, overrun accounting and a 20-case multi-worker/crash-recovery verification matrix.
+
+The contract explicitly states that a lease or TTL expiry cannot prove that external provider work stopped and cannot release quota. Confirmed usage above the reservation must be recorded as an overrun rather than silently discarded. It also distinguishes ledger idempotency from exactly-once provider execution.
+
+No backend has been selected. PostgreSQL is a candidate consistent with the wider architecture direction, but PostgreSQL/Supabase/Redis remain unapproved and unprovisioned. This increment adds no runtime code, dependency, schema, migration, credential, provider call, billing integration or deployment. The next gate is an evidence-based inventory of the actual runtime and persistence options, followed by a backend decision before implementation. PR #9 is stacked on PR #8; PRs #1–#9 remain open and unmerged.
