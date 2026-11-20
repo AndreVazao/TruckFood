@@ -474,3 +474,12 @@ The unit is a provider-neutral cost unit, not an assumed currency or universal r
 Important production boundary: this v1 ledger is process-local and in-memory. Multiple workers and restarts have independent counters; it is not production multi-worker quota enforcement. Production requires a shared transactional/atomic backend and durable reconciliation, which are intentionally outside this increment. No credentials, paid calls, billing, purchases, live provider integrations or deployment changes are included.
 
 PR #7 is a proposal stacked on PR #6. It must pass the full GitHub Actions contract/runtime workflow and review before merge. PRs #1–#7 remain open and unmerged.
+
+
+### 5.32 Provider quota reservation expiry safety v1 — corrective proposal (PR #8)
+
+Branch `fix/quota-expiry-reconciliation-v1` is stacked on PR #7. A correctness review found that the original TTL cleanup automatically released reserved capacity even though a synchronous provider operation could still be running or could already have incurred billable usage. PR #8 changes TTL expiry into a stale marker only: expired reservations continue consuming their original window's reserved units and are retained across the window boundary until explicitly reconciled.
+
+A stale reservation may be settled (actual units, defaulting to the full reserved amount) or released only through an explicit caller action representing confirmed no usage. The historical quota bucket is retained while any reservation remains unreconciled. The bounded reservation store therefore fails closed rather than silently freeing uncertain usage. Deterministic tests cover stale capacity retention, denial of additional reservations, explicit release, settlement after TTL and settlement after the window boundary.
+
+This correction does not solve process crashes, multi-worker coordination or durable leases. The ledger remains process-local and in-memory; a production shared backend still needs durable transactional state and lease/fencing semantics. No provider calls, credentials, billing, purchases or deployments are involved. PR #8 is a proposal only and must pass GitHub Actions before review; PRs #1–#8 remain open and unmerged.
