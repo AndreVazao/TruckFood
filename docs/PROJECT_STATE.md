@@ -473,7 +473,7 @@ The unit is a provider-neutral cost unit, not an assumed currency or universal r
 
 Important production boundary: this v1 ledger is process-local and in-memory. Multiple workers and restarts have independent counters; it is not production multi-worker quota enforcement. Production requires a shared transactional/atomic backend and durable reconciliation, which are intentionally outside this increment. No credentials, paid calls, billing, purchases, live provider integrations or deployment changes are included.
 
-PR #7 is a proposal stacked on PR #6. It must pass the full GitHub Actions contract/runtime workflow and review before merge. PRs #1–#7 remain open and unmerged.
+PR #7 is stacked on PR #6. Its full GitHub Actions workflow passed on 2026-11-19 (run #44605877646; 74 runtime tests); it remains open and unmerged pending review. PR #8 adds a corrective follow-up for reservation expiry safety. PRs #1–#8 remain open and unmerged.
 
 
 ### 5.32 Provider quota reservation expiry safety v1 — corrective proposal (PR #8)
