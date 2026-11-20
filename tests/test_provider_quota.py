@@ -66,14 +66,38 @@ class QuotaManagerTests(unittest.TestCase):
         self.assertEqual(snapshot.reserved_units, 0)
         self.assertEqual(snapshot.remaining_units, 5)
 
-    def test_expired_reservation_is_reclaimed(self):
+    def test_expired_reservation_keeps_capacity_until_explicit_reconciliation(self):
         self.manager.reserve("provider-a", "geocode", units=5, reservation_id="r1")
         self.clock.advance(10)
         snapshot = self.manager.snapshot("provider-a", "geocode")
+        self.assertEqual(snapshot.reserved_units, 5)
+        self.assertEqual(snapshot.remaining_units, 0)
+        with self.assertRaises(QuotaExceeded):
+            self.manager.reserve("provider-a", "geocode", reservation_id="r2")
+
+        settled = self.manager.settle("r1")
+        self.assertEqual(settled.consumed_units, 5)
+        self.assertEqual(settled.reserved_units, 0)
+        self.assertEqual(settled.remaining_units, 0)
+
+    def test_expired_reservation_can_be_released_after_confirmed_no_usage(self):
+        self.manager.reserve("provider-a", "geocode", units=5, reservation_id="r1")
+        self.clock.advance(10)
+        snapshot = self.manager.release("r1")
         self.assertEqual(snapshot.reserved_units, 0)
         self.assertEqual(snapshot.remaining_units, 5)
-        with self.assertRaises(QuotaReservationNotFound):
-            self.manager.settle("r1")
+
+    def test_expired_reservation_can_be_settled_after_window_boundary(self):
+        self.manager.reserve("provider-a", "geocode", units=2, reservation_id="r1")
+        self.clock.advance(61)
+        historical = self.manager.settle("r1", actual_units=1)
+        self.assertEqual(historical.window_id, 0)
+        self.assertEqual(historical.consumed_units, 1)
+        self.assertEqual(historical.reserved_units, 0)
+
+        current = self.manager.snapshot("provider-a", "geocode")
+        self.assertEqual(current.window_id, 1)
+        self.assertEqual(current.remaining_units, 5)
 
     def test_reservation_identifier_is_idempotent_while_active(self):
         first = self.manager.reserve("provider-a", "geocode", units=2, reservation_id="same")
