@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.4.0  
+**Version:** 3.5.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-20  
 **Repository:** `AndreVazao/TruckFood`  
@@ -492,3 +492,10 @@ This correction does not solve process crashes, multi-worker coordination or dur
 The contract explicitly states that a lease or TTL expiry cannot prove that external provider work stopped and cannot release quota. Confirmed usage above the reservation must be recorded as an overrun rather than silently discarded. It also distinguishes ledger idempotency from exactly-once provider execution.
 
 No backend has been selected. PostgreSQL is a candidate consistent with the wider architecture direction, but PostgreSQL/Supabase/Redis remain unapproved and unprovisioned. This increment adds no runtime code, dependency, schema, migration, credential, provider call, billing integration or deployment. The next gate is an evidence-based inventory of the actual runtime and persistence options, followed by a backend decision before implementation. PR #9 is stacked on PR #8; PRs #1–#9 remain open and unmerged.
+
+
+### 5.34 Provider quota backend selection matrix v1 — decision-support proposal (PR #10)
+
+`docs/specifications/QUOTA_BACKEND_SELECTION_MATRIX_V1.md` compares PostgreSQL, Redis, SQLite, managed-service and in-memory candidates against shared admission atomicity, durability, uncertain-commit retries, reconciliation, isolation, operations, cost and developer parity. It defines weighted criteria and hard correctness gates, plus an evidence checklist before selecting infrastructure.
+
+PostgreSQL is the first candidate to investigate because the wider architecture has proposed it, but that proposal is not evidence of an existing deployment. Backend selection remains deferred; Redis is not added speculatively, SQLite is not assumed suitable for multi-host operation, and in-memory remains for tests/local-only use. No runtime code, dependencies, schema, migrations, services, credentials, provider calls or deployment are introduced. PR #10 is stacked on PR #9; PRs #1–#10 remain open and unmerged.
