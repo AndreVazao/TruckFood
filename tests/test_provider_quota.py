@@ -3,7 +3,7 @@ import unittest
 
 from truckfood_providers.quota import (
     QuotaExceeded, QuotaManager, QuotaPolicy, QuotaPolicyMissing,
-    QuotaReservationConflict, QuotaReservationNotFound,
+    QuotaReservationConflict,
 )
 
 
