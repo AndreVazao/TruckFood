@@ -33,6 +33,6 @@ All admission, settlement and release transitions are protected by one process-l
 
 ## Production boundary
 
-This implementation is thread-safe only within one Python process. Separate workers and restarts have independent counters, so it must not be represented as production quota enforcement in a multi-worker deployment. Production requires a shared transactional/atomic backend (for example, a database transaction or atomic Redis script) with durable reservation state, expiry/reconciliation, tenant/provider/operation scoping, idempotent settlement, and concurrency tests. That backend is deliberately not implemented here.
+This implementation is thread-safe only within one Python process. Separate workers and restarts have independent counters, so it must not be represented as production quota enforcement in a multi-worker deployment. Production requires a shared transactional/atomic backend (for example, a database transaction or atomic Redis script) with durable reservation state, lease/fencing semantics that cannot release live work, tenant/provider/operation scoping, idempotent settlement, reconciliation and concurrency tests. That backend is deliberately not implemented here.
 
 No provider credentials, paid calls, purchases, billing integrations, live provider calls, deployment changes or external side effects are included.
