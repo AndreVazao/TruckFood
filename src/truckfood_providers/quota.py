@@ -213,8 +213,8 @@ class QuotaManager:
             if record.state == "released":
                 item = record.reservation
                 return self._snapshot(item.provider_id, item.operation, item.window_id, now)
-            if record.state != "reserved":
-                raise QuotaReservationConflict("only an active reservation can be released")
+            if record.state not in {"reserved", "expired"}:
+                raise QuotaReservationConflict("only an unreconciled reservation can be released")
             item = record.reservation
             usage = self._windows[(item.provider_id, item.operation, item.window_id)]
             usage.reserved -= item.units
