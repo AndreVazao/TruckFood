@@ -1,6 +1,6 @@
 # TruckFood Provider Registry v1
 
-- **Status:** Proposed specification; no runtime registry is implemented.
+- **Status:** Proposed specification with a minimal deterministic registry loader and selector implemented in `src/truckfood_providers/registry.py`; no production registry service or real provider adapter is enabled.
 - **Version:** 1.0.0
 - **Related:** ADR-0002, ADR-0006, ADR-0009, ADR-0013; provider capability contract v1.
 
@@ -86,4 +86,4 @@ At minimum test: digest mismatch; missing declaration; invalid schema; fixture-t
 
 ## 12. Non-goals and implementation status
 
-This specification does not implement a registry service, database table, runtime selector, provider adapters, credentials, health probes or provider approval. The example manifest is synthetic and exists only to validate structure. No real provider is approved or production-enabled by this document.
+This specification does not itself implement a registry service, database table, provider adapters, credentials, health probes or provider approval. The repository contains a deterministic local manifest loader and selector in `src/truckfood_providers/registry.py`, with synthetic fixtures and no external provider calls. The implementation is not a deployed/shared registry service: it does not establish production provider approval, live health observations, credential provisioning or production activation. No real provider is approved or production-enabled by this document.
