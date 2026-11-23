@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.6.0  
+**Version:** 3.7.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-23  
 **Repository:** `AndreVazao/TruckFood`  
@@ -506,3 +506,10 @@ PostgreSQL is the first candidate to investigate because the wider architecture 
 `docs/specifications/PROVIDER_QUOTA_SCOPE_TAXONOMY_V1.md` defines the scope categories needed before real provider quota policies can be configured: provider-global, account, credential, tenant/organization and resource-specific. It prohibits partitioning a provider-shared limit by TruckFood tenant merely to simplify accounting, requires provider evidence for scope/unit/window semantics, and calls for stable secret-free identity mapping. It records the gap in the current in-memory manager, which is keyed only by exact provider/operation and cannot represent shared scopes across operations or account/credential identities.
 
 No provider or quota scope is selected; no live provider evidence is claimed, and no code, credentials, services, migrations, provider calls or deployment are added. PR #11 is stacked on PR #10 and remains open pending CI/review. PRs #1–#11 remain open and unmerged.
+
+
+### 5.36 Provider registry implementation-status accuracy (PR #12)
+
+A consistency audit found that `PROVIDER_REGISTRY_V1.md` described the registry as having no runtime implementation, while the stacked provider-runtime work already contains `src/truckfood_providers/registry.py`, a deterministic local manifest loader and selector. The specification now distinguishes that implemented local foundation from a deployed/shared registry service and from real provider integrations.
+
+The manifest fixtures remain synthetic. No real provider is approved or production-enabled; no credentials, external health probes, provider calls, shared database, deployment or billing are introduced. This is a documentation accuracy correction only. PR #12 is stacked on PR #11; PRs #1–#12 remain open and unmerged.
