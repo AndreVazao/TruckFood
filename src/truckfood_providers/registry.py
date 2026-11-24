@@ -44,6 +44,8 @@ class SelectionDecision:
 def _parse_time(value: str | None) -> datetime | None:
     if value is None:
         return None
+    if not isinstance(value, str):
+        raise RegistryError("Timestamps must be ISO-8601 strings or null.")
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except (TypeError, ValueError) as exc:
@@ -57,6 +59,12 @@ def _required(mapping: dict[str, Any], keys: Iterable[str], where: str) -> None:
     missing = [key for key in keys if key not in mapping]
     if missing:
         raise RegistryError(f"{where} missing required fields: {', '.join(missing)}")
+
+
+def _object(value: Any, where: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RegistryError(f"{where} must be an object.")
+    return value
 
 
 def _safe_declaration_path(root: Path, reference: str) -> Path:
@@ -114,10 +122,16 @@ def load_registry(manifest_path: str | Path, repository_root: str | Path) -> dic
         if not isinstance(entry["priority"], int) or entry["priority"] < 0:
             raise RegistryError(f"{where} priority must be a non-negative integer.")
 
-        pin = entry["capability_declaration"]
-        if not isinstance(pin, dict):
-            raise RegistryError(f"{where} capability_declaration must be an object.")
+        _object(entry["rights_governance"], f"{where}.rights_governance")
+        _object(entry["operational_health"], f"{where}.operational_health")
+        pin = _object(entry["capability_declaration"], f"{where}.capability_declaration")
         _required(pin, ("reference", "sha256", "contract_version"), f"{where}.capability_declaration")
+        if not isinstance(pin["reference"], str) or not pin["reference"]:
+            raise RegistryError(f"{where} capability declaration reference must be a non-empty string.")
+        if not isinstance(pin["sha256"], str) or len(pin["sha256"]) != 64 or any(
+            character not in "0123456789abcdef" for character in pin["sha256"]
+        ):
+            raise RegistryError(f"{where} capability declaration sha256 must be 64 lowercase hexadecimal characters.")
         if pin["contract_version"] != "1.0.0":
             raise RegistryError(f"{where} has unsupported capability contract version.")
         declaration_file = _safe_declaration_path(root, pin["reference"])
@@ -133,6 +147,14 @@ def load_registry(manifest_path: str | Path, repository_root: str | Path) -> dic
             raise RegistryError(f"{where} capability declaration must be an object.")
         if declaration.get("declaration_type") != "provider_capability":
             raise RegistryError(f"{where} reference is not a capability declaration.")
+        for key in ("provider_id", "adapter_id", "adapter_version", "provider_product_version"):
+            if not isinstance(declaration.get(key), str) or not declaration[key]:
+                raise RegistryError(f"{where} capability declaration has invalid {key}.")
+        operations = declaration.get("operations")
+        if not isinstance(operations, list) or any(not isinstance(item, dict) for item in operations):
+            raise RegistryError(f"{where} capability declaration operations must be an array of objects.")
+        _object(declaration.get("geography"), f"{where}.capability_declaration.geography")
+        _object(declaration.get("data_rights"), f"{where}.capability_declaration.data_rights")
         for key in ("provider_id", "adapter_id", "adapter_version", "provider_product_version"):
             if entry[key] != declaration.get(key):
                 raise RegistryError(f"{where} identity mismatch for {key}.")
@@ -150,7 +172,7 @@ def _candidate_rejection(
     if entry["environment"] != request.environment or entry["lifecycle_state"] != "enabled":
         return "not_enabled_in_requested_environment"
 
-    rights_governance = entry["rights_governance"]
+    rights_governance = _object(entry.get("rights_governance"), "rights_governance")
     if rights_governance.get("review_state") != "approved":
         return "rights_governance_not_approved"
     reviewed_at = _parse_time(rights_governance.get("reviewed_at"))
@@ -158,7 +180,7 @@ def _candidate_rejection(
     if reviewed_at is None or reviewed_at > now or due is None or due <= now:
         return "rights_review_missing_or_overdue"
 
-    health = entry["operational_health"]
+    health = _object(entry.get("operational_health"), "operational_health")
     health_state = health.get("state", "unknown")
     checked = _parse_time(health.get("checked_at"))
     if health_state == "disabled" or health_state == "unavailable":
@@ -172,9 +194,11 @@ def _candidate_rejection(
 
     if declaration.get("capability_family") != request.capability_family:
         return "capability_family_mismatch"
+    operations = declaration.get("operations", [])
+    if not isinstance(operations, list) or any(not isinstance(item, dict) for item in operations):
+        return "provider_operations_invalid"
     operation = next(
-        (item for item in declaration.get("operations", [])
-         if item.get("operation") == request.operation),
+        (item for item in operations if item.get("operation") == request.operation),
         None,
     )
     if operation is None:
@@ -183,6 +207,8 @@ def _candidate_rejection(
         return "operation_not_fully_supported"
 
     geography = declaration.get("geography", {})
+    if not isinstance(geography, dict):
+        return "geographic_declaration_invalid"
     if geography.get("coverage_state") == "unknown":
         return "geographic_coverage_unknown"
     if request.country_code:
@@ -196,6 +222,8 @@ def _candidate_rejection(
             return f"required_vehicle_parameter_unsupported:{parameter}"
 
     rights = declaration.get("data_rights", {})
+    if not isinstance(rights, dict):
+        return "provider_data_rights_invalid"
     if rights.get("rights_state") != "reviewed":
         return "provider_data_rights_not_reviewed"
     for right in request.required_rights:
