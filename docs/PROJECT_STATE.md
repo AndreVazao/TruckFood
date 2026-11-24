@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.7.0  
+**Version:** 3.8.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-23  
 **Repository:** `AndreVazao/TruckFood`  
@@ -513,3 +513,10 @@ No provider or quota scope is selected; no live provider evidence is claimed, an
 A consistency audit found that `PROVIDER_REGISTRY_V1.md` described the registry as having no runtime implementation, while the stacked provider-runtime work already contains `src/truckfood_providers/registry.py`, a deterministic local manifest loader and selector. The specification now distinguishes that implemented local foundation from a deployed/shared registry service and from real provider integrations.
 
 The manifest fixtures remain synthetic. No real provider is approved or production-enabled; no credentials, external health probes, provider calls, shared database, deployment or billing are introduced. This is a documentation accuracy correction only. PR #12 is stacked on PR #11; PRs #1–#12 remain open and unmerged.
+
+
+### 5.37 Provider registry malformed-input hardening (PR #13)
+
+A targeted code review of the registry loader/selector found malformed nested JSON values and non-string timestamps that could escape the intended `RegistryError` boundary as generic Python exceptions. The loader now validates nested governance/health objects, capability identity fields, digest format, operation-array shape and declaration maps before selection. Timestamp parsing rejects non-string values explicitly, and selection handles malformed operation/geography/rights structures as fail-closed rejection reasons.
+
+Four regression tests cover malformed governance objects, non-string timestamps, malformed capability operations and invalid digest formatting. The change remains local and dependency-free; no external provider calls, credentials, infrastructure or deployment are introduced. CI must validate the change; no local test execution is claimed. PR #13 is stacked on PR #12; PRs #1–#13 remain open and unmerged.
