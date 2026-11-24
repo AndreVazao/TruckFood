@@ -240,7 +240,7 @@ class ProviderRegistryTests(unittest.TestCase):
         manifest = build_manifest(self.root)
         declaration = json.loads((self.root / "capability.json").read_text())
         declaration["operations"] = [None]
-        payload = (json.dumps(declaration, sort_keys=True) + "\\n").encode()
+        payload = (json.dumps(declaration, sort_keys=True) + "\n").encode()
         (self.root / "capability.json").write_bytes(payload)
         manifest["entries"][0]["capability_declaration"]["sha256"] = hashlib.sha256(payload).hexdigest()
         self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
