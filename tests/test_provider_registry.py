@@ -222,6 +222,38 @@ class ProviderRegistryTests(unittest.TestCase):
         self.assertFalse(result.selected)
         self.assertEqual(result.reason, "no_eligible_provider")
 
+
+    def test_rejects_non_object_rights_governance(self):
+        manifest = build_manifest(self.root)
+        manifest["entries"][0]["rights_governance"] = []
+        self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(RegistryError, "rights_governance must be an object"):
+            load_registry(self.manifest_path, self.root)
+
+    def test_rejects_non_string_review_timestamp(self):
+        manifest = self.load(build_manifest(self.root))
+        manifest["entries"][0]["rights_governance"]["reviewed_at"] = 123
+        with self.assertRaisesRegex(RegistryError, "Timestamps must be ISO-8601 strings"):
+            select_provider(manifest, self.request, now=self.now)
+
+    def test_rejects_malformed_capability_operations(self):
+        manifest = build_manifest(self.root)
+        declaration = json.loads((self.root / "capability.json").read_text())
+        declaration["operations"] = [None]
+        payload = (json.dumps(declaration, sort_keys=True) + "\\n").encode()
+        (self.root / "capability.json").write_bytes(payload)
+        manifest["entries"][0]["capability_declaration"]["sha256"] = hashlib.sha256(payload).hexdigest()
+        self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(RegistryError, "operations must be an array of objects"):
+            load_registry(self.manifest_path, self.root)
+
+    def test_rejects_malformed_digest_format(self):
+        manifest = build_manifest(self.root)
+        manifest["entries"][0]["capability_declaration"]["sha256"] = "not-a-digest"
+        self.manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(RegistryError, "64 lowercase hexadecimal"):
+            load_registry(self.manifest_path, self.root)
+
     def test_priority_and_id_are_deterministic(self):
         manifest = self.load(build_manifest(self.root))
         first = manifest["entries"][0]
