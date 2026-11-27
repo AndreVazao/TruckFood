@@ -74,6 +74,27 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual(rejected.dispatch.outcome, "invalid")
         self.assertEqual(adapter.calls, 1)
 
+    def test_quota_released_when_no_registered_adapter_is_invoked(self):
+        adapter = FakeAdapter()
+        dispatcher = AdapterDispatcher()
+        coordinator = ProviderExecutionCoordinator(
+            dispatcher=dispatcher,
+            resilience=ResilienceExecutor(),
+            circuit_breaker=CircuitBreaker(),
+            quota_manager=QuotaManager({("fake", "lookup"): QuotaPolicy(max_units=5)}),
+        )
+        result = coordinator.execute(
+            Decision(), operation="lookup", payload={}, deadline_seconds=1,
+            reservation_id="not-invoked",
+        )
+        self.assertEqual(result.dispatch.error_code, "trusted_adapter_not_registered")
+        self.assertFalse(result.provider_invocation_attempted)
+        self.assertEqual(result.quota_state, "released_confirmed_no_invocation")
+        snap = coordinator.quota_manager.snapshot("fake", "lookup")
+        self.assertEqual(snap.consumed_units, 0)
+        self.assertEqual(snap.reserved_units, 0)
+        self.assertEqual(adapter.calls, 0)
+
     def test_quota_missing_policy_fails_closed(self):
         adapter = FakeAdapter()
         dispatcher = AdapterDispatcher()
