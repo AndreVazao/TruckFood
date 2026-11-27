@@ -82,8 +82,9 @@ class ProviderExecutionCoordinator:
 
             def call_dispatch() -> DispatchResult:
                 nonlocal invocation_attempted
-                invocation_attempted = True
-                return self.dispatcher.dispatch(decision, operation=operation, payload=payload)
+                result = self.dispatcher.dispatch(decision, operation=operation, payload=payload)
+                invocation_attempted = invocation_attempted or result.metadata.get("provider_invoked") is True
+                return result
 
             return self.circuit_breaker.execute(provider_id, operation, call_dispatch)
 
