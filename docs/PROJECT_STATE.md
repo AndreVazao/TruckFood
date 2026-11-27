@@ -1,8 +1,8 @@
 # TruckFood — Project State
 
-**Version:** 3.7.0  
+**Version:** 3.9.0  
 **Status:** Active — Discovery / Foundation  
-**Last Update:** 2026-11-23  
+**Last Update:** 2026-11-27  
 **Repository:** `AndreVazao/TruckFood`  
 **Default Branch:** `main`
 
@@ -513,3 +513,26 @@ No provider or quota scope is selected; no live provider evidence is claimed, an
 A consistency audit found that `PROVIDER_REGISTRY_V1.md` described the registry as having no runtime implementation, while the stacked provider-runtime work already contains `src/truckfood_providers/registry.py`, a deterministic local manifest loader and selector. The specification now distinguishes that implemented local foundation from a deployed/shared registry service and from real provider integrations.
 
 The manifest fixtures remain synthetic. No real provider is approved or production-enabled; no credentials, external health probes, provider calls, shared database, deployment or billing are introduced. This is a documentation accuracy correction only. PR #12 is stacked on PR #11; PRs #1–#12 remain open and unmerged.
+
+
+### 5.37 Provider registry malformed-input hardening (PR #13)
+
+A targeted code review of the registry loader/selector found malformed nested JSON values and non-string timestamps that could escape the intended `RegistryError` boundary as generic Python exceptions. The loader now validates nested governance/health objects, capability identity fields, digest format, operation-array shape and declaration maps before selection. Timestamp parsing rejects non-string values explicitly, and selection handles malformed operation/geography/rights structures as fail-closed rejection reasons.
+
+Four regression tests cover malformed governance objects, non-string timestamps, malformed capability operations and invalid digest formatting. The change remains local and dependency-free; no external provider calls, credentials, infrastructure or deployment are introduced. GitHub Actions passed on commit `542e9baf9c0a159d79df8b813ea8b192a70cd5ca` (run #45457170125). No local test execution is claimed. PR #13 is stacked on PR #12; PRs #1–#13 remain open and unmerged.
+
+
+### 5.38 Adapter dispatcher malformed-selection hardening (PR #14)
+
+A focused audit of the registry-to-adapter boundary found that a malformed or manually constructed `SelectionDecision` could make dispatch raise generic Python exceptions while inspecting capability operations. The dispatcher now validates the selected entry, adapter identity/version, capability declaration, operation list and payload mapping before looking up or invoking a trusted adapter. Invalid inputs return normalized `invalid` results and never invoke the adapter; unsupported but well-formed operations remain distinct.
+
+Four regression tests cover malformed operation entries, missing declarations, invalid adapter identity and non-mapping payloads. This protects the dispatcher boundary even when a decision did not originate from the validated registry loader. No adapter imports, external provider calls, credentials, new dependencies, infrastructure, billing or deployment are introduced. PR #14 is stacked on PR #13, remains open and unmerged, and GitHub Actions run #45498580832 passed on head commit `221effbc50566db6a3f7e9645f8d300e821e7a7a`. CodeRabbit skipped automatic review because reviews are disabled for non-default base branches; no human review is recorded.
+
+
+### 5.39 Provider execution orchestration contract v1 — proposed (PR #15)
+
+`docs/specifications/PROVIDER_EXECUTION_ORCHESTRATION_V1.md` defines the safe coordination boundary for the existing registry selector, trusted adapter dispatcher, retry executor, circuit breaker and quota manager. It specifies validation and quota admission before invocation, circuit-breaker and retry interaction, idempotency propagation, uncertain-outcome handling, explicit quota reconciliation, normalized results, safe metadata and a 20-case deterministic verification matrix.
+
+This is a contract/documentation increment only. It does not claim that a central coordinator has been implemented. The current quota manager and circuit breaker remain process-local; no durable/shared backend, real provider, credentials, network calls, billing, failover or deployment is introduced. The next implementation increment must add a small in-process coordinator with synthetic adapters and deterministic tests, preserving the contract's fail-closed and uncertain-usage rules.
+
+PR #14 was merged into the PR #13 base branch on 2026-11-27 (merge commit `6f4cd680bee9a77fd772f06061c9a4f83e9c9100`). Its head CI run #34 completed successfully on commit `eb6203c80d0d53c7e1b19f1e301d8485a72f61c1`; no local test execution is claimed. PR #15 is stacked on the updated PR #13 branch; the default `main` branch has not been changed.

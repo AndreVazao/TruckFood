@@ -111,6 +111,48 @@ class AdapterDispatcherTests(unittest.TestCase):
         self.assertEqual(result.outcome, "invalid")
         self.assertEqual(result.error_code, "adapter_returned_invalid_result")
 
+    def test_malformed_capability_operations_fail_closed(self):
+        malformed = SelectionDecision(
+            {"registry_entry_id": "fake.entry", "adapter_id": "fake.poi",
+             "adapter_version": "1.0.0"},
+            {"operations": [None]}, (), "selected",
+        )
+        result = self.dispatcher.dispatch(malformed, operation="search_poi", payload={})
+        self.assertEqual(result.outcome, "invalid")
+        self.assertEqual(result.error_code, "provider_capability_operations_invalid")
+        self.assertEqual(self.adapter.calls, [])
+
+    def test_missing_capability_declaration_fails_closed(self):
+        malformed = SelectionDecision(
+            {"registry_entry_id": "fake.entry", "adapter_id": "fake.poi",
+             "adapter_version": "1.0.0"},
+            None, (), "selected",
+        )
+        result = self.dispatcher.dispatch(malformed, operation="search_poi", payload={})
+        self.assertEqual(result.outcome, "invalid")
+        self.assertEqual(result.error_code, "provider_capability_declaration_invalid")
+        self.assertEqual(self.adapter.calls, [])
+
+    def test_invalid_selected_adapter_identity_fails_closed(self):
+        malformed = SelectionDecision(
+            {"registry_entry_id": "fake.entry", "adapter_id": [],
+             "adapter_version": "1.0.0"},
+            {"operations": [{"operation": "search_poi", "support_state": "supported"}]},
+            (), "selected",
+        )
+        result = self.dispatcher.dispatch(malformed, operation="search_poi", payload={})
+        self.assertEqual(result.outcome, "invalid")
+        self.assertEqual(result.error_code, "selected_provider_identity_invalid")
+        self.assertEqual(self.adapter.calls, [])
+
+    def test_non_mapping_payload_is_rejected_before_adapter_call(self):
+        result = self.dispatcher.dispatch(
+            selected_decision(), operation="search_poi", payload=None,
+        )
+        self.assertEqual(result.outcome, "invalid")
+        self.assertEqual(result.error_code, "dispatch_payload_invalid")
+        self.assertEqual(self.adapter.calls, [])
+
     def test_duplicate_registration_is_rejected(self):
         with self.assertRaises(AdapterRegistrationError):
             self.dispatcher.register(

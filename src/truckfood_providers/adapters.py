@@ -102,17 +102,47 @@ class AdapterDispatcher:
             )
 
         entry = decision.selected_entry
+        if not isinstance(entry, Mapping):
+            return DispatchResult(
+                outcome="invalid", error_code="selected_provider_entry_invalid",
+            )
         adapter_id = entry.get("adapter_id")
         adapter_version = entry.get("adapter_version")
-        declaration = decision.capability_declaration or {}
+        if not isinstance(adapter_id, str) or not adapter_id or not isinstance(adapter_version, str) or not adapter_version:
+            return DispatchResult(
+                outcome="invalid", error_code="selected_provider_identity_invalid",
+            )
+
+        declaration = decision.capability_declaration
+        if not isinstance(declaration, Mapping):
+            return DispatchResult(
+                outcome="invalid", error_code="provider_capability_declaration_invalid",
+                adapter_id=adapter_id,
+            )
+        operations = declaration.get("operations")
+        if not isinstance(operations, list) or any(not isinstance(item, Mapping) for item in operations):
+            return DispatchResult(
+                outcome="invalid", error_code="provider_capability_operations_invalid",
+                adapter_id=adapter_id,
+            )
+        if not isinstance(operation, str) or not operation:
+            return DispatchResult(
+                outcome="invalid", error_code="dispatch_operation_invalid",
+                adapter_id=adapter_id,
+            )
         declared = any(
             item.get("operation") == operation and item.get("support_state") == "supported"
-            for item in declaration.get("operations", [])
+            for item in operations
         )
         if not declared:
             return DispatchResult(
                 outcome="unsupported",
                 error_code="operation_not_declared_by_selected_provider",
+                adapter_id=adapter_id,
+            )
+        if not isinstance(payload, Mapping):
+            return DispatchResult(
+                outcome="invalid", error_code="dispatch_payload_invalid",
                 adapter_id=adapter_id,
             )
 
