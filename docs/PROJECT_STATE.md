@@ -1,6 +1,6 @@
 # TruckFood — Project State
 
-**Version:** 3.9.0  
+**Version:** 4.0.0  
 **Status:** Active — Discovery / Foundation  
 **Last Update:** 2026-11-27  
 **Repository:** `AndreVazao/TruckFood`  
@@ -536,3 +536,10 @@ Four regression tests cover malformed operation entries, missing declarations, i
 This is a contract/documentation increment only. It does not claim that a central coordinator has been implemented. The current quota manager and circuit breaker remain process-local; no durable/shared backend, real provider, credentials, network calls, billing, failover or deployment is introduced. The next implementation increment must add a small in-process coordinator with synthetic adapters and deterministic tests, preserving the contract's fail-closed and uncertain-usage rules.
 
 PR #14 was merged into the PR #13 base branch on 2026-11-27 (merge commit `6f4cd680bee9a77fd772f06061c9a4f83e9c9100`). Its head CI run #34 completed successfully on commit `eb6203c80d0d53c7e1b19f1e301d8485a72f61c1`; no local test execution is claimed. PR #15 is stacked on the updated PR #13 branch; the default `main` branch has not been changed.
+
+
+### 5.40 Provider execution coordinator v1 — implementation proposal (PR #16)
+
+Branch `feat/provider-execution-coordinator-v1` introduces an in-process `ProviderExecutionCoordinator` that composes the existing trusted adapter dispatcher, retry executor, circuit breaker and optional process-local quota manager. The initial implementation validates selection/request shape, requires a stable reservation ID when quota is configured, fails closed on quota admission errors, executes each retry attempt through circuit-breaker admission, and settles reserved units conservatively whenever provider invocation may have occurred. If no adapter invocation occurred, the reservation is explicitly released. The normalized result includes safe coordinator attempt/invocation/quota metadata.
+
+Synthetic tests cover quota reservation/settlement, missing reservation IDs, malformed selections, missing quota policies and quota release when no trusted adapter is actually entered. A follow-up correctness fix moves the invocation marker into the dispatcher: it is now set only after entering the registered adapter, including adapter exceptions, while selection/registration/operation rejection and circuit-open rejection remain non-invocations. The coordinator consumes this explicit dispatcher metadata instead of assuming that entering the dispatcher means provider work began. The implementation is an initial integration slice, not production readiness: quota and breaker state are process-local; synchronous adapter calls cannot be forcibly cancelled; uncertain outcomes are conservatively charged at the reserved amount rather than reconciled to actual provider usage; no failover or real provider is included. GitHub Actions validation is required; no local tests are claimed. PR #15 was merged into the PR #13 base on 2026-11-27 (merge SHA `75d410dbf7787e6e75945c69ed3502dff5489530`).

@@ -161,19 +161,22 @@ class AdapterDispatcher:
         try:
             result = registered.instance.execute(operation, payload)
         except Exception:
-            # Never expose provider exception text, credentials or raw response bodies.
+            # The trusted adapter was entered; never expose exception details.
             return DispatchResult(
                 outcome="unavailable", error_code="adapter_execution_failed",
                 retryable=False, adapter_id=adapter_id,
+                metadata={"provider_invoked": True},
             )
 
         if not isinstance(result, AdapterResult):
             return DispatchResult(
                 outcome="invalid", error_code="adapter_returned_invalid_result",
-                adapter_id=adapter_id,
+                adapter_id=adapter_id, metadata={"provider_invoked": True},
             )
+        metadata = dict(result.metadata)
+        metadata["provider_invoked"] = True
         return DispatchResult(
             outcome=result.outcome, data=result.data, error_code=result.error_code,
             retryable=result.retryable, adapter_id=adapter_id,
-            metadata=dict(result.metadata),
+            metadata=metadata,
         )
