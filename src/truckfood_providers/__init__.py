@@ -30,6 +30,7 @@ from .registry import (
     load_registry,
     select_provider,
 )
+from .coordinator import CoordinatorResult, ProviderExecutionCoordinator
 from .resilience import (
     ExecutionContext,
     OperationRetryPolicy,
@@ -47,10 +48,12 @@ __all__ = [
     "CircuitBreakerPolicy",
     "CircuitSnapshot",
     "CircuitState",
+    "CoordinatorResult",
     "DispatchResult",
     "ExecutionContext",
     "OperationRetryPolicy",
     "ProviderAdapter",
+    "ProviderExecutionCoordinator",
     "QuotaError",
     "QuotaExceeded",
     "QuotaManager",
